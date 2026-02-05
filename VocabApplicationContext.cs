@@ -19,10 +19,11 @@ public class VocabApplicationContext : ApplicationContext
     {
         _settingsService = settingsService;
         
-        var csvPath = Path.Combine(AppContext.BaseDirectory, "Data", "words.csv");
+        var precompiledPath = Path.Combine(AppContext.BaseDirectory, "Data", "words.csv");
+        var managedPath = Path.Combine(AppContext.BaseDirectory, "appdata.csv");
 
-        var repository = new CsvWordRepository();
-        var words = repository.Load(csvPath);
+        var wordListService = new WordListService(precompiledPath, managedPath);
+        var words = wordListService.LoadAndMerge();
 
         _quizService = new QuizService(words);
 
