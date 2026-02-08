@@ -7,22 +7,24 @@ namespace VocabularyTrainer.Services;
 public class QuizService
 {
     private readonly List<WordEntry> _words;
+    private readonly WordWeightStrategy _weightStrategy;
 
-    public QuizService(List<WordEntry> words)
+    public QuizService(List<WordEntry> words, WordWeightStrategy weightStrategy)
     {
         _words = words;
+        _weightStrategy = weightStrategy;
     }
 
-    public QuizSession CreateQuizSession(QuizConfiguration configuration)
+    public QuizSession CreateQuizSession(QuizConfiguration configuration, WordListService wordListService)
     {
         var quiz = CreateQuiz(configuration.OptionCount);
-        var presenter = new QuizPresenter(quiz, configuration.MaxAttemptsPerQuiz);
+        var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
 
     private Quiz CreateQuiz(int optionCount)
     {
-        var correct = _words[Random.Shared.Next(_words.Count)];
+        var correct = SelectWordByWeight();
 
         var sameGroupItems = _words
             .Where(i =>
@@ -50,7 +52,25 @@ public class QuizService
         return new Quiz(
             correct.Question,
             correct.Answer,
-            options
+            options,
+            correct
         );
+    }
+
+    private WordEntry SelectWordByWeight()
+    {
+        // Build ticket pool
+        var tickets = new List<WordEntry>();
+        foreach (var word in _words)
+        {
+            var ticketCount = _weightStrategy.CalculateTickets(word);
+            for (int i = 0; i < ticketCount; i++)
+            {
+                tickets.Add(word);
+            }
+        }
+
+        // Select random ticket
+        return tickets[Random.Shared.Next(tickets.Count)];
     }
 }

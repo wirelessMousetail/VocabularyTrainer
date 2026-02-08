@@ -10,12 +10,14 @@ public class WordListService
     private readonly string _precompiledPath;
     private readonly string _managedPath;
     private readonly CsvWordRepository _repository;
+    private List<WordEntry> _words;
 
     public WordListService(string precompiledPath, string managedPath)
     {
         _precompiledPath = precompiledPath;
         _managedPath = managedPath;
         _repository = new CsvWordRepository();
+        _words = new List<WordEntry>();
     }
 
     public List<WordEntry> LoadAndMerge()
@@ -25,28 +27,64 @@ public class WordListService
         if (!File.Exists(_managedPath))
         {
             // No managed list exists - create it from precompiled
-            SaveManaged(precompiled);
-            return precompiled;
+            _words = precompiled;
+            SaveManaged();
+            return _words;
         }
 
-        var managed = _repository.Load(_managedPath);
+        _words = LoadManagedWords();
         
         // Merge: add words from precompiled that don't exist in managed
-        var managedQuestions = managed.Select(w => w.Question).ToHashSet();
-        var newWords = precompiled.Where(w => !managedQuestions.Contains(w.Question)).ToList();
+        var managedQuestions = _words.Select(w => w.Question).ToHashSet();
+        var newWords = precompiled
+            .Where(w => !managedQuestions.Contains(w.Question))
+            .ToList();
         
         if (newWords.Count > 0)
         {
-            managed.AddRange(newWords);
-            SaveManaged(managed);
+            _words.AddRange(newWords);
+            SaveManaged();
         }
 
-        return managed;
+        return _words;
     }
 
-    private void SaveManaged(List<WordEntry> words)
+    public void SaveWords()
     {
-        var lines = words.Select(w => $"{w.Question};{w.Answer}");
+        SaveManaged();
+    }
+
+    private List<WordEntry> LoadManagedWords()
+    {
+        var lines = File.ReadAllLines(_managedPath);
+        var words = new List<WordEntry>();
+
+        foreach (var line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            var parts = line.Split(';');
+            if (parts.Length < 2)
+                continue;
+
+            var question = parts[0];
+            var answer = parts[1];
+            var weight = parts.Length > 2 ? int.Parse(parts[2]) : 0;
+            var streak = parts.Length > 3 ? int.Parse(parts[3]) : 0;
+
+            var weightData = new WeightData(weight, streak);
+            var wordEntry = new WordEntry(question, answer, weightData);
+            words.Add(wordEntry);
+        }
+
+        return words;
+    }
+
+    private void SaveManaged()
+    {
+        var lines = _words.Select(w => 
+            $"{w.Question};{w.Answer};{w.WeightData.Weight};{w.WeightData.CorrectStreak}");
         File.WriteAllLines(_managedPath, lines);
     }
 }

@@ -9,6 +9,7 @@ namespace VocabularyTrainer;
 public class VocabApplicationContext : ApplicationContext
 {
     private readonly QuizService _quizService;
+    private readonly WordListService _wordListService;
     private readonly SettingsService _settingsService;
     private readonly Timer _nextQuizTimer;
     private readonly TrayIconManager _trayIcon;
@@ -22,10 +23,11 @@ public class VocabApplicationContext : ApplicationContext
         var precompiledPath = Path.Combine(AppContext.BaseDirectory, "Data", "words.csv");
         var managedPath = Path.Combine(AppContext.BaseDirectory, "appdata.csv");
 
-        var wordListService = new WordListService(precompiledPath, managedPath);
-        var words = wordListService.LoadAndMerge();
+        _wordListService = new WordListService(precompiledPath, managedPath);
+        var words = _wordListService.LoadAndMerge();
 
-        _quizService = new QuizService(words);
+        var weightStrategy = new WordWeightStrategy();
+        _quizService = new QuizService(words, weightStrategy);
 
         _nextQuizTimer = new Timer();
         _nextQuizTimer.Interval = _settingsService.GetSettings().QuizIntervalSeconds * 1000;
@@ -64,7 +66,7 @@ public class VocabApplicationContext : ApplicationContext
     private void ShowQuiz()
     {
         var settings = _settingsService.GetSettings();
-        var session = _quizService.CreateQuizSession(settings.QuizConfiguration);
+        var session = _quizService.CreateQuizSession(settings.QuizConfiguration, _wordListService);
         var form = new QuizForm(session);
 
         form.FormClosed += (_, _) =>

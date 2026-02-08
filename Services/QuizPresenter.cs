@@ -3,13 +3,17 @@
 public class QuizPresenter : IQuizPresenter
 {
     private readonly Quiz _quiz;
+    private readonly WordWeightStrategy _weightStrategy;
+    private readonly WordListService _wordListService;
     private readonly int? _maxAttempts;
     private int _attemptCount;
     private QuizResult _result = QuizResult.Pending;
 
-    public QuizPresenter(Quiz quiz, int? maxAttempts = null)
+    public QuizPresenter(Quiz quiz, WordWeightStrategy weightStrategy, WordListService wordListService, int? maxAttempts = null)
     {
         _quiz = quiz;
+        _weightStrategy = weightStrategy;
+        _wordListService = wordListService;
         _maxAttempts = maxAttempts;
     }
 
@@ -23,8 +27,14 @@ public class QuizPresenter : IQuizPresenter
         if (selectedAnswer == _quiz.CorrectAnswer)
         {
             _result = QuizResult.Correct;
+            _weightStrategy.RegisterCorrect(_quiz.WordEntry);
+            _wordListService.SaveWords();
             return;
         }
+
+        // Wrong answer - register mistake
+        _weightStrategy.RegisterMistake(_quiz.WordEntry);
+        _wordListService.SaveWords();
 
         if (_maxAttempts.HasValue && _attemptCount >= _maxAttempts.Value)
         {

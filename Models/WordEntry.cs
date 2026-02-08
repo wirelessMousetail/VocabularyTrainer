@@ -8,11 +8,13 @@ public class WordEntry
     public string Answer { get; }
     
     public WordGroup Group { get; }
+    public WeightData WeightData { get; }
 
-    public WordEntry(string question, string answer)
+    public WordEntry(string question, string answer, WeightData? weightData = null)
     {
         Question = question;
         Answer = answer;
         Group = WordGrouping.Detect(question);
+        WeightData = weightData ?? new WeightData();
     }
 }
