@@ -6,5 +6,5 @@ public class QuizConfiguration
     public int AutoCloseAfterCorrectSeconds { get; init; } = 5;
     public bool ShowCorrectAnswerOnWrong { get; init; } = false;
     public int? MaxAttemptsPerQuiz { get; init; } = null;
-    public bool IsReversedDirection { get; init; } = false;
+    public QuizDirection Direction { get; init; } = QuizDirection.Direct;
 }

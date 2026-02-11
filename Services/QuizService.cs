@@ -17,14 +17,23 @@ public class QuizService
 
     public QuizSession CreateQuizSession(QuizConfiguration configuration, WordListService wordListService)
     {
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.IsReversedDirection);
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction);
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
 
-    private Quiz CreateQuiz(int optionCount, bool isReversed)
+    private Quiz CreateQuiz(int optionCount, QuizDirection direction)
     {
         var correct = SelectWordByWeight();
+
+        // Determine actual direction for this quiz
+        bool isReversed = direction switch
+        {
+            QuizDirection.Direct => false,
+            QuizDirection.Reverse => true,
+            QuizDirection.Random => Random.Shared.Next(2) == 1,
+            _ => false
+        };
 
         var sameGroupItems = _words
             .Where(i =>

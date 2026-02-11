@@ -20,7 +20,7 @@ public class SettingsService
         return _currentSettings;
     }
 
-    public void UpdateSettings(int quizIntervalSeconds, int autoCloseAfterCorrectSeconds, int optionCount, bool isReversedDirection)
+    public void UpdateSettings(int quizIntervalSeconds, int autoCloseAfterCorrectSeconds, int optionCount, QuizDirection direction)
     {
         _currentSettings = new AppSettings
         {
@@ -31,7 +31,7 @@ public class SettingsService
                 AutoCloseAfterCorrectSeconds = autoCloseAfterCorrectSeconds,
                 ShowCorrectAnswerOnWrong = _currentSettings.QuizConfiguration.ShowCorrectAnswerOnWrong,
                 MaxAttemptsPerQuiz = _currentSettings.QuizConfiguration.MaxAttemptsPerQuiz,
-                IsReversedDirection = isReversedDirection
+                Direction = direction
             }
         };
 
