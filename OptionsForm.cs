@@ -14,6 +14,7 @@ public partial class OptionsForm : Form
     private NumericUpDown _intervalInput;
     private NumericUpDown _autoCloseInput;
     private NumericUpDown _optionCountInput;
+    private CheckBox _reversedDirectionCheckbox;
 
     public OptionsForm(SettingsService settingsService, Action onSettingsApplied)
     {
@@ -113,6 +114,13 @@ public partial class OptionsForm : Form
 
         optionCountPanel.Controls.Add(_optionCountInput);
 
+        _reversedDirectionCheckbox = new CheckBox
+        {
+            Text = "Reverse quiz direction (English → Dutch)",
+            AutoSize = true,
+            Margin = new Padding(0, 15, 0, 10)
+        };
+
         var buttonsPanel = new FlowLayoutPanel
         {
             FlowDirection = FlowDirection.RightToLeft,
@@ -135,6 +143,7 @@ public partial class OptionsForm : Form
         layout.Controls.Add(intervalPanel);
         layout.Controls.Add(autoClosePanel);
         layout.Controls.Add(optionCountPanel);
+        layout.Controls.Add(_reversedDirectionCheckbox);
         layout.Controls.Add(buttonsPanel);
 
         Controls.Add(layout);
@@ -146,6 +155,7 @@ public partial class OptionsForm : Form
         _intervalInput.Value = settings.QuizIntervalSeconds;
         _autoCloseInput.Value = settings.QuizConfiguration.AutoCloseAfterCorrectSeconds;
         _optionCountInput.Value = settings.QuizConfiguration.OptionCount;
+        _reversedDirectionCheckbox.Checked = settings.QuizConfiguration.IsReversedDirection;
     }
     
     private void SaveAndClose()
@@ -153,7 +163,8 @@ public partial class OptionsForm : Form
         _settingsService.UpdateSettings(
             (int)_intervalInput.Value,
             (int)_autoCloseInput.Value,
-            (int)_optionCountInput.Value
+            (int)_optionCountInput.Value,
+            _reversedDirectionCheckbox.Checked
         );
 
         _onSettingsApplied();

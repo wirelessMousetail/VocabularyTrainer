@@ -17,12 +17,12 @@ public class QuizService
 
     public QuizSession CreateQuizSession(QuizConfiguration configuration, WordListService wordListService)
     {
-        var quiz = CreateQuiz(configuration.OptionCount);
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.IsReversedDirection);
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
 
-    private Quiz CreateQuiz(int optionCount)
+    private Quiz CreateQuiz(int optionCount, bool isReversed)
     {
         var correct = SelectWordByWeight();
 
@@ -39,19 +39,19 @@ public class QuizService
         var options = pool
             .OrderBy(_ => Random.Shared.Next())
             .Take(optionCount - 1)
-            .Select(w => w.Answer)
+            .Select(w => isReversed ? w.Question : w.Answer)
             .Distinct()
             .ToList();
 
-        options.Add(correct.Answer);
+        options.Add(isReversed ? correct.Question : correct.Answer);
 
         options = options
             .OrderBy(_ => Random.Shared.Next())
             .ToList();
 
         return new Quiz(
-            correct.Question,
-            correct.Answer,
+            isReversed ? correct.Answer : correct.Question,
+            isReversed ? correct.Question : correct.Answer,
             options,
             correct
         );
