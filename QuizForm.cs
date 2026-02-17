@@ -161,7 +161,13 @@ public partial class QuizForm : Form
 //  * Открывать нвоый вопрос двойным щелчком по трею
 //  * Выбирать в варианты "похожие" слова
 //  * Мигрировать с вин форм на что-нибудь кросс платформенное, сделать мак совместимым
+//  * Повышать вес не только слова которое не угадал, но и варианта который выбрал вместо него
 //  ** Возможность просить напечатать ответ (требуется нормализация списка)
+//  * Add contributions.md file
+//  * Improve ARCHITECTURE.md: Make sure that infrastructure layer is on the diagram and replace the text diagram with graphical diagram
+//  * Transform WordGrouping to service with interface, so it can be easily replaced with another implementation
+//  * Application context class should not manage timer and handle pause/resume reactions
+//  * Custom tray icon for paused state?
 //  - Логику таймера в отдельный интерфейс (чтобы можно было свичнуться в начало отсчета после окончания предыдущего вместо ответа)
 
 //todo chatgpt next steps proposal:
