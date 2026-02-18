@@ -3,6 +3,9 @@ using System.Windows.Forms;
 
 namespace VocabularyTrainer.Infrastructure;
 
+/// <summary>
+/// Manages the system tray icon and context menu for the application.
+/// </summary>
 public class TrayIconManager : IDisposable
 {
     private readonly NotifyIcon _notifyIcon;
@@ -10,6 +13,13 @@ public class TrayIconManager : IDisposable
     private readonly ToolStripMenuItem _pauseItem;
     private readonly ToolStripMenuItem _resumeItem;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TrayIconManager"/> class.
+    /// </summary>
+    /// <param name="onPauseRequested">Action to execute when Pause is selected.</param>
+    /// <param name="onResumeRequested">Action to execute when Resume is selected.</param>
+    /// <param name="onOptionsRequested">Action to execute when Options is selected.</param>
+    /// <param name="onExitRequested">Action to execute when Exit is selected.</param>
     public TrayIconManager(
         Action onPauseRequested,
         Action onResumeRequested,
@@ -61,12 +71,19 @@ public class TrayIconManager : IDisposable
         };
     }
     
+    /// <summary>
+    /// Updates the tray menu to reflect the paused/running state.
+    /// </summary>
+    /// <param name="paused">True if the application is paused, false if running.</param>
     public void SetPaused(bool paused)
     {
         _pauseItem.Enabled = !paused;
         _resumeItem.Enabled = paused;
     }
 
+    /// <summary>
+    /// Disposes of the tray icon and custom icon resources.
+    /// </summary>
     public void Dispose()
     {
         _notifyIcon.Visible = false;
