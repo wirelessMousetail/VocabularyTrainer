@@ -20,7 +20,9 @@ public class QuizPresenter : IQuizPresenter
     public void OnAnswerSelected(string selectedAnswer)
     {
         if (_result == QuizResult.Correct || _result == QuizResult.MaxAttemptsReached)
+        {
             return;
+        }
 
         _attemptCount++;
 

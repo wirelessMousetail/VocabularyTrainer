@@ -14,6 +14,9 @@ public partial class OptionsForm : Form
     private NumericUpDown _intervalInput;
     private NumericUpDown _autoCloseInput;
     private NumericUpDown _optionCountInput;
+    private RadioButton _directRadio;
+    private RadioButton _reverseRadio;
+    private RadioButton _randomRadio;
 
     public OptionsForm(SettingsService settingsService, Action onSettingsApplied)
     {
@@ -113,6 +116,45 @@ public partial class OptionsForm : Form
 
         optionCountPanel.Controls.Add(_optionCountInput);
 
+        var directionGroupBox = new GroupBox
+        {
+            Text = "Quiz Direction",
+            AutoSize = true,
+            Margin = new Padding(0, 15, 0, 10),
+            Padding = new Padding(10)
+        };
+
+        var directionPanel = new FlowLayoutPanel
+        {
+            FlowDirection = FlowDirection.TopDown,
+            AutoSize = true,
+            Dock = DockStyle.Fill
+        };
+
+        _directRadio = new RadioButton
+        {
+            Text = "Direct (Dutch → English)",
+            AutoSize = true,
+            Checked = true
+        };
+
+        _reverseRadio = new RadioButton
+        {
+            Text = "Reverse (English → Dutch)",
+            AutoSize = true
+        };
+
+        _randomRadio = new RadioButton
+        {
+            Text = "Random",
+            AutoSize = true
+        };
+
+        directionPanel.Controls.Add(_directRadio);
+        directionPanel.Controls.Add(_reverseRadio);
+        directionPanel.Controls.Add(_randomRadio);
+        directionGroupBox.Controls.Add(directionPanel);
+
         var buttonsPanel = new FlowLayoutPanel
         {
             FlowDirection = FlowDirection.RightToLeft,
@@ -135,6 +177,7 @@ public partial class OptionsForm : Form
         layout.Controls.Add(intervalPanel);
         layout.Controls.Add(autoClosePanel);
         layout.Controls.Add(optionCountPanel);
+        layout.Controls.Add(directionGroupBox);
         layout.Controls.Add(buttonsPanel);
 
         Controls.Add(layout);
@@ -146,14 +189,36 @@ public partial class OptionsForm : Form
         _intervalInput.Value = settings.QuizIntervalSeconds;
         _autoCloseInput.Value = settings.QuizConfiguration.AutoCloseAfterCorrectSeconds;
         _optionCountInput.Value = settings.QuizConfiguration.OptionCount;
+
+        switch (settings.QuizConfiguration.Direction)
+        {
+            case QuizDirection.Direct:
+                _directRadio.Checked = true;
+                break;
+            case QuizDirection.Reverse:
+                _reverseRadio.Checked = true;
+                break;
+            case QuizDirection.Random:
+                _randomRadio.Checked = true;
+                break;
+        }
     }
     
     private void SaveAndClose()
     {
+        QuizDirection direction;
+        if (_directRadio.Checked)
+            direction = QuizDirection.Direct;
+        else if (_reverseRadio.Checked)
+            direction = QuizDirection.Reverse;
+        else
+            direction = QuizDirection.Random;
+
         _settingsService.UpdateSettings(
             (int)_intervalInput.Value,
             (int)_autoCloseInput.Value,
-            (int)_optionCountInput.Value
+            (int)_optionCountInput.Value,
+            direction
         );
 
         _onSettingsApplied();

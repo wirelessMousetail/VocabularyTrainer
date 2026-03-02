@@ -5,6 +5,9 @@ using VocabularyTrainer.Models;
 
 namespace VocabularyTrainer.Services;
 
+/// <summary>
+/// Service responsible for managing vocabulary word lists, including loading, merging, and persisting word data.
+/// </summary>
 public class WordListService
 {
     private readonly string _precompiledPath;
@@ -12,6 +15,11 @@ public class WordListService
     private readonly CsvWordRepository _repository;
     private List<WordEntry> _words;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WordListService"/> class.
+    /// </summary>
+    /// <param name="precompiledPath">Path to the precompiled word list CSV file (Data/words.csv).</param>
+    /// <param name="managedPath">Path to the managed word list CSV file with progress tracking (appdata.csv).</param>
     public WordListService(string precompiledPath, string managedPath)
     {
         _precompiledPath = precompiledPath;
@@ -20,10 +28,16 @@ public class WordListService
         _words = new List<WordEntry>();
     }
 
+    /// <summary>
+    /// Loads and merges the precompiled and managed word lists.
+    /// New words from the precompiled list are added to the managed list with default progress values.
+    /// Existing words in the managed list retain their progress data (weight, streak, group).
+    /// </summary>
+    /// <returns>The merged list of <see cref="WordEntry"/> objects.</returns>
     public List<WordEntry> LoadAndMerge()
     {
         var precompiled = _repository.Load(_precompiledPath);
-        
+
         if (!File.Exists(_managedPath))
         {
             // No managed list exists - create it from precompiled
@@ -33,7 +47,7 @@ public class WordListService
         }
 
         _words = LoadManagedWords();
-        
+
         // Merge: add words from precompiled that don't exist in managed
         var managedQuestions = _words.Select(w => w.Question).ToHashSet();
         var newWords = precompiled
@@ -49,6 +63,9 @@ public class WordListService
         return _words;
     }
 
+    /// <summary>
+    /// Saves the current word list with updated progress data to the managed CSV file.
+    /// </summary>
     public void SaveWords()
     {
         SaveManaged();
