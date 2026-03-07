@@ -1,0 +1,16 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VocabularyTrainer.App"
+             RequestedThemeVariant="Default">
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Resources/tray.ico"
+                      ToolTipText="VocabularyTrainer">
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
+</Application>
