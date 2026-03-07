@@ -27,10 +27,15 @@ A Windows desktop application for learning vocabulary through periodic quizzes. 
 
 ## System Requirements
 
-- **Operating System**: Windows 10 or later
-- **.NET Runtime**: .NET 8.0 or later
+- **Operating System**: Windows 10/11, macOS 10.15+, or Linux
+- **.NET Runtime**: .NET 8.0 or later (not required for self-contained releases)
 
 ## Installation
+
+### Pre-built Releases
+Download the appropriate release package for your platform from the [Releases](https://github.com/wirelessMousetail/VocabularyTrainer/releases) page.
+
+**Self-contained releases** include the .NET runtime and don't require any additional installation.
 
 ### Building from Source
 1. Ensure you have [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) installed
@@ -47,6 +52,107 @@ A Windows desktop application for learning vocabulary through periodic quizzes. 
    ```bash
    dotnet run
    ```
+
+## Creating Release Builds
+
+### Self-Contained Releases (Recommended)
+These include the .NET runtime and work without requiring .NET installation on the target machine.
+
+**Windows (x64):**
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+```
+Output: `bin/Release/net8.0/win-x64/publish/`
+
+**macOS (Apple Silicon - M1/M2/M3):**
+```bash
+# Build the release (on any platform)
+dotnet publish -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true
+
+# Create .app bundle (run on Mac after transferring the publish folder)
+cd bin/Release/net8.0/osx-arm64/publish
+chmod +x create-macos-app.sh
+./create-macos-app.sh
+```
+Output: `bin/Release/net8.0/osx-arm64/publish/VocabularyTrainer.app`
+
+**macOS (Intel):**
+```bash
+# Build the release (on any platform)
+dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true
+
+# Create .app bundle (run on Mac after transferring the publish folder)
+cd bin/Release/net8.0/osx-x64/publish
+chmod +x create-macos-app.sh
+./create-macos-app.sh
+```
+Output: `bin/Release/net8.0/osx-x64/publish/VocabularyTrainer.app`
+
+**Linux (x64):**
+```bash
+dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
+```
+Output: `bin/Release/net8.0/linux-x64/publish/`
+
+### Distribution Package Contents
+
+The publish folder contains all necessary files. To create a distribution package:
+
+**Required files:**
+- Main executable (`VocabularyTrainer.exe` / `VocabularyTrainer`)
+- `Data/` folder with `words.csv`
+- `appsettings.json`
+- Native libraries:
+  - `av_libglesv2.dll` (Windows) / `.dylib` (macOS) / `.so` (Linux)
+  - `libHarfBuzzSharp.dll` / `.dylib` / `.so`
+  - `libSkiaSharp.dll` / `.dylib` / `.so`
+
+**Optional (can be excluded):**
+- `VocabularyTrainer.pdb` - Debug symbols (~20-50MB, only needed for debugging)
+- `appdata.csv` - Will be auto-created on first run
+
+**Package size:** ~60-80 MB (self-contained, without .pdb)
+
+### Framework-Dependent Releases (Smaller Size)
+If users already have .NET 8 installed, you can create smaller releases:
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained false
+```
+
+**Package size:** ~1-2 MB (requires .NET 8 Runtime on target machine)
+
+### Platform-Specific Notes
+
+**macOS:**
+- The app is not signed with an Apple Developer certificate, so macOS will block it by default
+- **Creating .app bundle:** Navigate to the publish folder and run:
+  ```bash
+  cd bin/Release/net8.0/osx-x64/publish
+
+  # Make script executable and run
+  chmod +x create-macos-app.sh
+  ./create-macos-app.sh
+  ```
+- **Running .app bundles:** Right-click `VocabularyTrainer.app` → "Open" → Click "Open" in the dialog
+  - Or: Remove quarantine: `xattr -cr VocabularyTrainer.app` then double-click to launch
+- **For standalone executable:** After extracting the archive, open Terminal and run:
+  ```bash
+  # Remove quarantine attribute from all files
+  xattr -cr .
+
+  # Make the executable runnable
+  chmod +x VocabularyTrainer
+
+  # Run the app
+  ./VocabularyTrainer
+  ```
+- Alternative: System Settings → Privacy & Security → "Open Anyway" (appears after first launch attempt)
+- Note: The .app bundle prevents the Terminal window from appearing when launching from Finder
+
+**Linux:**
+- Make the binary executable: `chmod +x VocabularyTrainer`
+- System tray support varies by desktop environment (confirmed working on Ubuntu/GNOME)
 
 ## Quick Start
 
