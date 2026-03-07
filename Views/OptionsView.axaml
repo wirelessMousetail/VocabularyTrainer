@@ -7,7 +7,8 @@
         Width="450" Height="480"
         MinWidth="400" MinHeight="450"
         CanResize="False"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Icon="/Resources/tray.ico">
 
     <Window.Styles>
         <Style Selector="TextBlock.label">

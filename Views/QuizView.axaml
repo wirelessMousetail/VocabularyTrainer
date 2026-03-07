@@ -8,6 +8,7 @@
         MinWidth="350" MinHeight="300"
         CanResize="True"
         WindowStartupLocation="CenterScreen"
+        Icon="/Resources/tray.ico"
         PointerPressed="Window_PointerPressed">
 
     <Window.Styles>
