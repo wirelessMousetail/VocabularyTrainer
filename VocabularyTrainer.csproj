@@ -2,20 +2,13 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <UseWindowsForms>true</UseWindowsForms>
         <ImplicitUsings>enable</ImplicitUsings>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Resources\tray.ico</ApplicationIcon>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Compile Update="QuizForm.cs">
-        <SubType>Form</SubType>
-      </Compile>
-      <Compile Update="OptionsForm.cs">
-        <SubType>Form</SubType>
-      </Compile>
-    </ItemGroup>
 
     <ItemGroup>
       <None Update="Data\words.csv">
@@ -24,13 +17,21 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="create-macos-app.sh">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="Resources\tray.ico" />
-      <Content Include="Resources\tray.ico">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+      <AvaloniaResource Include="Resources\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Avalonia" Version="11.0.10" />
+      <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+      <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+      <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
     </ItemGroup>
 
     <ItemGroup>
