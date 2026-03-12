@@ -17,21 +17,21 @@ Technical architecture documentation for the VocabularyTrainer application.
 
 ## Overview
 
-VocabularyTrainer is a Windows Forms desktop application built on .NET 8.0. The architecture follows a layered approach with clear separation between presentation, business logic, and data persistence layers.
+VocabularyTrainer is a cross-platform desktop application built on .NET 8.0. The architecture follows a layered approach with clear separation between presentation, business logic, and data persistence layers.
 
 ### Technology Stack
 
 - **Framework**: .NET 8.0
-- **UI Framework**: Windows Forms
+- **UI Framework**: Avalonia UI (MVVM, cross-platform)
 - **Language**: C# 12
 - **Data Storage**: CSV (vocabulary), JSON (settings)
-- **Platform**: Windows 10+
+- **Platform**: Windows 10+, macOS 10.15+, Linux
 
 ### Core Components
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              VocabApplicationContext                │
+│                 ApplicationService                  │
 │          (Application Orchestrator)                 │
 └──────────────┬──────────────────────────────────────┘
                │
@@ -40,8 +40,8 @@ VocabularyTrainer is a Windows Forms desktop application built on .NET 8.0. The 
 ┌──────▼───────┐  ┌──────▼────────┐
 │  UI Layer    │  │ Service Layer │
 │              │  │               │
-│ - QuizForm   │  │ - QuizService │
-│ - OptionsForm│  │ - Settings    │
+│ - QuizView   │  │ - QuizService │
+│ - OptionsView│  │ - Settings    │
 │ - TrayIcon   │  │ - WordList    │
 └──────────────┘  └──────┬────────┘
                          │
@@ -162,31 +162,38 @@ Business logic and orchestration:
 
 ### UI Layer
 
-**Forms:**
+**Views (Avalonia MVVM):**
 
-1. **`QuizForm`**
+1. **`QuizView` / `QuizViewModel`**
    - Displays quiz questions and multiple-choice options
    - Handles user answer selection
    - Shows result feedback
    - Auto-closes on correct answers
 
-2. **`OptionsForm`**
+2. **`OptionsView` / `OptionsViewModel`**
    - Settings configuration UI
    - Input fields for intervals, counts, and direction
    - Saves changes via `SettingsService`
 
-**Application Context:**
+**Application Entry Point:**
 
-3. **`VocabApplicationContext`**
+3. **`App` (`App.axaml.cs`)**
+   - Avalonia application entry point
+   - Wires services to views via events
+   - Dispatches UI work to the UI thread
+
+**Application Orchestrator:**
+
+4. **`ApplicationService`**
    - Main application orchestrator
    - Manages quiz timer
    - Coordinates services
 
-### Infrastructure Layer (`Infrastructure/`)
+### Infrastructure Layer
 
 **System Integration:**
 
-1. **`TrayIconManager`**
+1. **`TrayIconService`**
    - Creates and manages system tray icon
    - Provides context menu (Pause, Resume, Options, Exit)
    - Handles icon disposal
@@ -199,10 +206,10 @@ Business logic and orchestration:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  VocabApplicationContext                    │
+│                    ApplicationService                       │
 │                                                             │
 │  ┌──────────────┐   ┌──────────────┐  ┌─────────────────┐   │
-│  │   Timer      │   │ TrayIconMgr  │  │ SettingsService │   │
+│  │   Timer      │   │TrayIconSvc   │  │ SettingsService │   │
 │  └──────┬───────┘   └──────┬───────┘  └────────┬────────┘   │
 │         │                  │                   │            │
 │         │ (on tick)        │ (on action)       │ (get)      │
@@ -211,11 +218,11 @@ Business logic and orchestration:
 │  │              ShowQuiz() / OpenOptions()              │   │
 │  └──────────────┬───────────────────────────────────────┘   │
 └─────────────────┼───────────────────────────────────────────┘
-                  │
+                  │ (events → App.axaml.cs → Dispatcher)
          ┌────────┴────────┐
          │                 │
     ┌────▼────┐      ┌─────▼──────┐
-    │QuizForm │      │OptionsForm │
+    │QuizView │      │OptionsView │
     └────┬────┘      └─────┬──────┘
          │                 │
          │                 │ (updates)
@@ -363,7 +370,7 @@ public class AppSettings
 
 **Implementation:**
 ```csharp
-public VocabApplicationContext(SettingsService settingsService)
+public ApplicationService(SettingsService settingsService)
 {
     _settingsService = settingsService;
     _wordListService = new WordListService(precompiledPath, managedPath);
@@ -383,11 +390,11 @@ public VocabApplicationContext(SettingsService settingsService)
 ### Application Startup Flow
 
 ```
-1. Program.Main()
+1. Program.Main() / App.OnFrameworkInitializationCompleted()
    │
    ├─► Create SettingsService (loads appsettings.json)
    │
-   └─► Create VocabApplicationContext
+   └─► Create ApplicationService
        │
        ├─► Create WordListService
        │   ├─► Load Data/words.csv (precompiled)
@@ -396,17 +403,17 @@ public VocabApplicationContext(SettingsService settingsService)
        │
        ├─► Create QuizService (with words + WeightStrategy)
        │
+       ├─► Initialize TrayIconService
+       │
        ├─► Start quiz timer
        │
-       ├─► Show first quiz immediately
-       │
-       └─► Create TrayIconManager
+       └─► Show first quiz immediately
 ```
 
 ### Quiz Flow
 
 ```
-1. Timer tick → VocabApplicationContext.ShowQuiz()
+1. Timer tick → ApplicationService.ShowQuiz()
    │
 2. QuizService.CreateQuizSession()
    │
@@ -423,7 +430,7 @@ public VocabApplicationContext(SettingsService settingsService)
    │
    └─► Create QuizPresenter + QuizSession
        │
-3. Display QuizForm
+3. QuizRequested event → App dispatches → Display QuizView
    │
 4. User clicks answer button
    │
@@ -439,7 +446,7 @@ public VocabApplicationContext(SettingsService settingsService)
    │       ├─► WordWeightStrategy.RegisterMistake()
    │       └─► WordListService.SaveWords()
    │
-5. QuizForm shows result
+5. QuizView shows result
    │
    └─► Auto-close (if correct) or allow retry (if wrong)
 ```
@@ -447,9 +454,9 @@ public VocabApplicationContext(SettingsService settingsService)
 ### Settings Update Flow
 
 ```
-1. User opens OptionsForm
+1. User opens OptionsView
    │
-2. OptionsForm.LoadFromSettings()
+2. OptionsViewModel loads from settings
    │
    └─► SettingsService.GetSettings()
        │
@@ -462,7 +469,7 @@ public VocabApplicationContext(SettingsService settingsService)
    │   ├─► Create new immutable AppSettings
    │   └─► Save to appsettings.json
    │
-   └─► VocabApplicationContext.ApplySettings()
+   └─► ApplicationService.ApplySettings()
        │
        └─► Update timer interval
 ```
@@ -498,11 +505,11 @@ On Startup:
 
 ### Application State
 
-**Location**: `VocabApplicationContext`
+**Location**: `ApplicationService`
 
 **State Variables:**
 - `_isPaused`: Boolean flag for pause/resume state
-- `_nextQuizTimer`: Windows Forms Timer for quiz scheduling
+- `_nextQuizTimer`: System.Timers.Timer for quiz scheduling
 
 **State Transitions:**
 ```
@@ -539,7 +546,7 @@ Pending ──[Correct Answer]──► Correct
 **State Transitions:**
 ```
 Weight:
-  Wrong Answer → weight = (weight * 1.5) + 1 (cap at 100)
+  Wrong Answer → weight = (weight * 3) + 1 (cap at 100)
   Correct Answer (streak ≤ 5) → weight = weight - 1
   Correct Answer (streak > 5) → weight = weight * 0.5
 
@@ -667,7 +674,7 @@ public interface INotificationService
 public class WindowsNotificationService : INotificationService { /* ... */ }
 ```
 
-Inject into `VocabApplicationContext` for milestone notifications.
+Inject into `ApplicationService` for milestone notifications.
 
 ---
 
@@ -691,7 +698,7 @@ public void RegisterMistake_IncreasesWeight()
 
     strategy.RegisterMistake(word);
 
-    Assert.AreEqual(16, word.WeightData.Weight); // (10 * 1.5) + 1
+    Assert.AreEqual(31, word.WeightData.Weight); // (10 * 3) + 1
 }
 ```
 

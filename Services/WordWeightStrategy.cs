@@ -36,7 +36,7 @@ public class WordWeightStrategy
 
     /// <summary>
     /// Registers an incorrect answer for a word, increasing its weight exponentially and resetting the correct streak.
-    /// Formula: weight = (weight × 1.5) + 1, capped at 100.
+    /// Formula: weight = (weight × 3) + 1, capped at 100.
     /// </summary>
     /// <param name="wordEntry">The word entry to update.</param>
     public void RegisterMistake(WordEntry wordEntry)

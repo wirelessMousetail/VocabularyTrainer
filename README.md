@@ -192,7 +192,7 @@ The VocabularyTrainer uses a weight-based algorithm to optimize your learning:
 
 ### How Weights Work
 - **Initial Weight**: All words start with weight 0
-- **On Mistake**: Weight increases exponentially: `weight = (weight × 1.5) + 1` (capped at 100)
+- **On Mistake**: Weight increases exponentially: `weight = (weight × 3) + 1` (capped at 100)
 - **On Correct Answer**:
   - First 5 correct in a row: Weight decreases linearly by 1
   - After 5 correct: Weight decreases exponentially: `weight = weight × 0.5`
