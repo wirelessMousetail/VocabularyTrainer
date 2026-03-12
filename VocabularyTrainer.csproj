@@ -35,6 +35,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Remove="VocabularyTrainer.Tests\**" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Folder Include="docs\" />
     </ItemGroup>
 
