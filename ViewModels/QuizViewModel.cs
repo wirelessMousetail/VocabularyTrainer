@@ -107,13 +107,13 @@ public class QuizViewModel : ViewModelBase
 
                 if (_session.Configuration.ShowCorrectAnswerOnWrong)
                 {
-                    var correctAnswer = ((QuizPresenter)_session.Presenter).GetCorrectAnswer();
+                    var correctAnswer = _session.Presenter.GetCorrectAnswer();
                     ResultMessage += $" (Correct: {correctAnswer})";
                 }
                 break;
 
             case QuizResult.MaxAttemptsReached:
-                var answer = ((QuizPresenter)_session.Presenter).GetCorrectAnswer();
+                var answer = _session.Presenter.GetCorrectAnswer();
                 ResultMessage = $"Max attempts reached. Answer: {answer}";
                 ResultColor = "Orange";
                 IsQuizCompleted = true;

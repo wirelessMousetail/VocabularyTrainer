@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
@@ -33,29 +35,41 @@ public partial class App : Application
             _settingsService = new SettingsService(settingsPath);
 
             // Create application service
-            _applicationService = new ApplicationService(_settingsService);
+            ApplicationService appService;
+            try
+            {
+                appService = new ApplicationService(_settingsService);
+            }
+            catch (InvalidDataException ex)
+            {
+                ShowFatalError(ex.Message);
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
+            _applicationService = appService;
 
             // Subscribe to events
-            _applicationService.QuizRequested += OnQuizRequested;
-            _applicationService.OptionsRequested += OnOptionsRequested;
-            _applicationService.ExitRequested += OnExitRequested;
+            appService.QuizRequested += OnQuizRequested;
+            appService.OptionsRequested += OnOptionsRequested;
+            appService.ExitRequested += OnExitRequested;
+            appService.ErrorOccurred += (_, message) => ShowFatalError(message);
 
             // Initialize tray icon
             var trayIcon = TrayIcon.GetIcons(this)?.FirstOrDefault();
-            if (trayIcon != null && _applicationService != null)
+            if (trayIcon != null)
             {
-                _trayIconService = new TrayIconService(_applicationService);
+                _trayIconService = new TrayIconService(appService);
                 _trayIconService.Initialize(trayIcon);
             }
 
             // Handle application shutdown
             desktop.ShutdownRequested += (_, _) =>
             {
-                _applicationService?.Dispose();
+                appService.Dispose();
             };
 
             // Start the application service
-            _applicationService.Start();
+            appService.Start();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -66,19 +80,28 @@ public partial class App : Application
         Dispatcher.UIThread.Post(() =>
         {
             QuizView? window = null;
+            bool completedNotified = false;
+
+            void NotifyCompleted()
+            {
+                if (completedNotified) return;
+                completedNotified = true;
+                _applicationService!.OnQuizCompleted();
+            }
 
             var viewModel = new QuizViewModel(session, () =>
             {
-                // Close the window
                 window?.Close();
-                // Notify application service to start next quiz timer
-                _applicationService?.OnQuizCompleted();
+                NotifyCompleted();
             });
 
             window = new QuizView
             {
                 DataContext = viewModel
             };
+
+            // Ensure timer restarts even when window is closed via OS controls
+            window.Closed += (_, _) => NotifyCompleted();
 
             window.Show();
         });
@@ -88,15 +111,18 @@ public partial class App : Application
     {
         Dispatcher.UIThread.Post(() =>
         {
-            if (_applicationService == null || _settingsService == null)
+            var appService = _applicationService;
+            var settingsService = _settingsService;
+
+            if (appService == null || settingsService == null)
                 return;
 
             OptionsView? window = null;
 
             var viewModel = new OptionsViewModel(
-                _settingsService,
-                () => _applicationService.ApplySettings(),
-                () => window?.Close() // Close the window
+                settingsService,
+                () => appService.ApplySettings(),
+                () => window?.Close()
             );
 
             window = new OptionsView
@@ -116,6 +142,49 @@ public partial class App : Application
             {
                 desktop.Shutdown();
             }
+        });
+    }
+
+    private void ShowFatalError(string message)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var button = new Button
+            {
+                Content = "OK",
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            var window = new Window
+            {
+                Title = "VocabularyTrainer — Error",
+                Width = 440,
+                Height = 170,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Content = new StackPanel
+                {
+                    Margin = new Thickness(20),
+                    Spacing = 16,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = message,
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        button
+                    }
+                }
+            };
+
+            button.Click += (_, _) => window.Close();
+            window.Closed += (_, _) =>
+            {
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                    desktop.Shutdown();
+            };
+
+            window.Show();
         });
     }
 }
