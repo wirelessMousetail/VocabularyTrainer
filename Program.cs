@@ -42,7 +42,8 @@ static class Program
 //      + Уточнить назначения RelayCommand и ViewModelBase
 //      + Добавить команды для релиза под разные платформ
 //      + Протестить на маке
-//      * Открыть PR и дать заревьювить кодексу
+//      + Открыть PR и дать заревьювить кодексу
+//  + Придумать что делать с синонимами: beslissen and besluiten have similar meaning, so both should be correct answers to "to decide"
 //  * Открывать нвоый вопрос двойным щелчком по трею
 //  * Выбирать в варианты "похожие" слова
 //  * Повышать вес не только слова которое не угадал, но и варианта который выбрал вместо него
@@ -50,12 +51,9 @@ static class Program
 //  * Add contributions.md file
 //  * Improve ARCHITECTURE.md: Make sure that infrastructure layer is on the diagram and replace the text diagram with graphical diagram
 //  * Transform WordGrouping to service with interface, so it can be easily replaced with another implementation
-//  * Application context class should not manage timer and handle pause/resume reactions
 //  * Custom tray icon for paused state?
-//  * Придумать что делать с синонимами: beslissen and besluiten have similar meaning, so both should be correct answers to "to decide"
 //  * Новым загруженным словам ставить автоматически рейтинг повыше (максимум?) и сразу 5 страйков, чтобы далее уменьшалось экспоционально
 //  * Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
-//  - Логику таймера в отдельный интерфейс (чтобы можно было свичнуться в начало отсчета после окончания предыдущего вместо ответа)
 
 
 

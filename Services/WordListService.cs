@@ -87,15 +87,16 @@ public class WordListService
 
             var question = parts[0];
             var answer = parts[1];
-            var weight = parts.Length > 2 && !string.IsNullOrWhiteSpace(parts[2]) ? int.Parse(parts[2]) : 0;
-            var streak = parts.Length > 3 && !string.IsNullOrWhiteSpace(parts[3]) ? int.Parse(parts[3]) : 0;
-            
-            // Parse WordGroup if present (backward compatible)
+
+            if (string.IsNullOrWhiteSpace(question) || string.IsNullOrWhiteSpace(answer))
+                throw new InvalidDataException($"Invalid word list: empty question or answer found in '{_managedPath}'. Please fix or delete the file and restart.");
+
+            int.TryParse(parts.Length > 2 ? parts[2] : null, out var weight);
+            int.TryParse(parts.Length > 3 ? parts[3] : null, out var streak);
+
             WordGroup? group = null;
-            if (parts.Length > 4 && !string.IsNullOrWhiteSpace(parts[4]))
-            {
-                group = Enum.Parse<WordGroup>(parts[4]);
-            }
+            if (parts.Length > 4 && Enum.TryParse<WordGroup>(parts[4], out var parsedGroup))
+                group = parsedGroup;
 
             var weightData = new WeightData(weight, streak);
             var wordEntry = new WordEntry(question, answer, weightData, group);

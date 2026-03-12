@@ -25,12 +25,16 @@ public class QuizService
 
     /// <summary>
     /// Creates a new quiz session with selected word, options, and presenter logic.
+    /// Returns null if the word list is empty.
     /// </summary>
     /// <param name="configuration">The quiz configuration settings.</param>
     /// <param name="wordListService">The word list service for saving progress.</param>
-    /// <returns>A new <see cref="QuizSession"/> ready for user interaction.</returns>
-    public QuizSession CreateQuizSession(QuizConfiguration configuration, WordListService wordListService)
+    /// <returns>A new <see cref="QuizSession"/> ready for user interaction, or null if no words are available.</returns>
+    public QuizSession? CreateQuizSession(QuizConfiguration configuration, WordListService wordListService)
     {
+        if (_words.Count == 0)
+            return null;
+
         var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction);
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
@@ -56,21 +60,31 @@ public class QuizService
             _ => false
         };
 
+        var correctTarget = (isReversed ? correct.Question : correct.Answer).Trim();
+        bool IsSynonym(WordEntry w) =>
+            string.Equals((isReversed ? w.Question : w.Answer).Trim(), correctTarget, StringComparison.OrdinalIgnoreCase);
+
+        var correctSource = (isReversed ? correct.Answer : correct.Question).Trim();
+        bool IsAlsoCorrect(WordEntry w) =>
+            string.Equals((isReversed ? w.Answer : w.Question).Trim(), correctSource, StringComparison.OrdinalIgnoreCase);
+
         var sameGroupItems = _words
             .Where(i =>
                 i != correct &&
-                i.Group == correct.Group)
+                i.Group == correct.Group &&
+                !IsSynonym(i) &&
+                !IsAlsoCorrect(i))
             .ToList();
 
         IEnumerable<WordEntry> pool = sameGroupItems.Count >= optionCount - 1
             ? sameGroupItems
-            : _words.Where(w => w != correct);
+            : _words.Where(w => w != correct && !IsSynonym(w) && !IsAlsoCorrect(w));
 
         var options = pool
-            .OrderBy(_ => Random.Shared.Next())
-            .Take(optionCount - 1)
             .Select(w => isReversed ? w.Question : w.Answer)
             .Distinct()
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(optionCount - 1)
             .ToList();
 
         options.Add(isReversed ? correct.Question : correct.Answer);

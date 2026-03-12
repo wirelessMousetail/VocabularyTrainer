@@ -4,6 +4,7 @@ public interface IQuizPresenter
 {
     void OnAnswerSelected(string selectedAnswer);
     QuizResult GetResult();
+    string GetCorrectAnswer();
 }
 
 public enum QuizResult

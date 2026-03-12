@@ -32,6 +32,12 @@ public class ApplicationService : IDisposable
     public event EventHandler? ExitRequested;
 
     /// <summary>
+    /// Event raised when a fatal error occurs that prevents normal operation.
+    /// The string argument contains the error message to display to the user.
+    /// </summary>
+    public event EventHandler<string>? ErrorOccurred;
+
+    /// <summary>
     /// Gets a value indicating whether the application is paused.
     /// </summary>
     public bool IsPaused => _isPaused;
@@ -142,6 +148,12 @@ public class ApplicationService : IDisposable
     {
         var settings = _settingsService.GetSettings();
         var session = _quizService.CreateQuizSession(settings.QuizConfiguration, _wordListService);
+
+        if (session == null)
+        {
+            ErrorOccurred?.Invoke(this, "No words are available. The application cannot run without a word list.\n\nPlease add words to Data/words.csv and restart the application.");
+            return;
+        }
 
         QuizRequested?.Invoke(this, session);
     }
