@@ -32,7 +32,16 @@ public partial class App : Application
 
             // Initialize services
             var settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
-            _settingsService = new SettingsService(settingsPath);
+            try
+            {
+                _settingsService = new SettingsService(settingsPath);
+            }
+            catch (Exception ex)
+            {
+                ShowFatalError($"The settings file could not be read.\n\n{ex.Message}\n\nPlease fix or delete 'appsettings.json' and restart.");
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
 
             // Create application service
             ApplicationService appService;
@@ -40,7 +49,7 @@ public partial class App : Application
             {
                 appService = new ApplicationService(_settingsService);
             }
-            catch (InvalidDataException ex)
+            catch (Exception ex) when (ex is InvalidDataException or FormatException)
             {
                 ShowFatalError(ex.Message);
                 base.OnFrameworkInitializationCompleted();

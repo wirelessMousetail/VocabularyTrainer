@@ -64,16 +64,14 @@ public class SettingsService
             return CreateDefault();
         }
 
-        try
+        var json = File.ReadAllText(_settingsPath);
+
+        if (string.IsNullOrWhiteSpace(json))
         {
-            var json = File.ReadAllText(_settingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json) ?? CreateDefault();
-        }
-        catch
-        {
-            //todo add logging here
             return CreateDefault();
         }
+
+        return JsonSerializer.Deserialize<AppSettings>(json) ?? CreateDefault();
     }
 
     private void Save(AppSettings settings)
