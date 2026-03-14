@@ -74,6 +74,19 @@ public class QuizServiceTests
         session.Quiz.CorrectAnswer.Should().Be(expectedAnswer);
     }
 
+    [Fact]
+    public void Quiz_QuestionAndAnswer_AreValid_ForRandomDirection() //todo run 100 times to make sure direction changes
+    {
+        var words = FiveDistinctWords();
+        var hond = words.Single(w => w.Question == "hond");
+        var session = Build(words).CreateQuizSessionForWord(hond, Config(dir: QuizDirection.Random), null!);
+
+        // Either direct ("hond"→"dog") or reverse ("dog"→"hond") is valid
+        (session.Quiz.Question, session.Quiz.CorrectAnswer).Should().BeOneOf(
+            ("hond", "dog"),
+            ("dog",  "hond"));
+    }
+
     // ── IsSynonym – Direct mode ───────────────────────────────────────────────
 
     public static IEnumerable<object[]> CarSynonymCases()

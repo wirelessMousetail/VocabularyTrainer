@@ -89,6 +89,16 @@ public class QuizPresenterTests : IDisposable
     // ── Max attempts ──────────────────────────────────────────────────────────
 
     [Fact]
+    public void WrongAnswer_NeverReachesMaxAttempts_WhenMaxAttemptsIsNull()
+    {
+        var (presenter, _) = MakePresenter("dog", maxAttempts: null);
+        presenter.OnAnswerSelected("wrong");
+        presenter.OnAnswerSelected("wrong");
+        presenter.OnAnswerSelected("wrong");
+        presenter.GetResult().Should().Be(QuizResult.Wrong);
+    }
+
+    [Fact]
     public void MaxAttemptsReached_AfterConfiguredWrongAnswers()
     {
         var (presenter, _) = MakePresenter("dog", maxAttempts: 2);
