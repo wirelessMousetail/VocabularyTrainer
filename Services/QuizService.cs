@@ -35,7 +35,17 @@ public class QuizService
         if (_words.Count == 0)
             return null;
 
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction);
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, SelectWordByWeight());
+        var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
+        return new QuizSession(quiz, presenter, configuration);
+    }
+
+    /// <summary>
+    /// Creates a quiz session with a specific word as the question. Intended for testing.
+    /// </summary>
+    internal QuizSession CreateQuizSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
+    {
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, word);
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
@@ -47,9 +57,8 @@ public class QuizService
     /// <param name="optionCount">Number of multiple-choice options.</param>
     /// <param name="direction">Quiz direction (Direct, Reverse, or Random).</param>
     /// <returns>A configured <see cref="Quiz"/> instance.</returns>
-    private Quiz CreateQuiz(int optionCount, QuizDirection direction)
+    private Quiz CreateQuiz(int optionCount, QuizDirection direction, WordEntry correct)
     {
-        var correct = SelectWordByWeight();
 
         // Determine actual direction for this quiz
         bool isReversed = direction switch

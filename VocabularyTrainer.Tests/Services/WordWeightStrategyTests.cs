@@ -54,12 +54,18 @@ public class WordWeightStrategyTests
 
     // ── RegisterCorrect – exponential branch (streak after increment > 5) ────
 
-    [Fact]
-    public void RegisterCorrect_ExponentialDecrease_WhenStreakExceedsThreshold()
+    [Theory]
+    [InlineData(5,  20, 10)] // streak 5→6, 20×0.5
+    [InlineData(5,  50, 25)] // streak 5→6, 50×0.5
+    [InlineData(6, 100, 50)] // streak 6→7, already above threshold
+    [InlineData(9,  40, 20)] // streak 9→10, high streak
+    public void RegisterCorrect_ExponentialDecrease_WhenStreakExceedsThreshold(
+        int initialStreak, int initialWeight, int expectedWeight)
     {
-        var word = WordEntryFixture.Make("lopen", "to walk", weight: 20, streak: 5);
-        _strategy.RegisterCorrect(word); // streak becomes 6
-        word.WeightData.Weight.Should().Be(10); // 20×0.5
+        var word = WordEntryFixture.Make("lopen", "to walk", weight: initialWeight, streak: initialStreak);
+        _strategy.RegisterCorrect(word);
+        word.WeightData.Weight.Should().Be(expectedWeight);
+        word.WeightData.CorrectStreak.Should().Be(initialStreak + 1);
     }
 
     [Fact]
