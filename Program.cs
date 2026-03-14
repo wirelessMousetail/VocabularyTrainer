@@ -47,15 +47,13 @@ static class Program
 //  * Открывать нвоый вопрос двойным щелчком по трею
 //  * Выбирать в варианты "похожие" слова
 //  * Повышать вес не только слова которое не угадал, но и варианта который выбрал вместо него
+//  * Новым загруженным словам ставить автоматически рейтинг повыше (максимум?) и сразу 5 страйков, чтобы далее уменьшалось экспоционально
+//  * Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
 //  ** Возможность просить напечатать ответ (требуется нормализация списка)
 //  * Add contributions.md file
 //  * Improve ARCHITECTURE.md: Make sure that infrastructure layer is on the diagram and replace the text diagram with graphical diagram
 //  * Transform WordGrouping to service with interface, so it can be easily replaced with another implementation
 //  * Custom tray icon for paused state?
-//  * Новым загруженным словам ставить автоматически рейтинг повыше (максимум?) и сразу 5 страйков, чтобы далее уменьшалось экспоционально
-//  * Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
-
-
 
 
 //todo chatgpt next steps proposal:
