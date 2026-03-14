@@ -23,73 +23,79 @@ public class QuizServiceTests
         service.CreateQuizSession(Config(), null!).Should().BeNull();
     }
 
-    // ── Option invariants (run many iterations due to randomness) ─────────────
+    // ── Option invariants ─────────────────────────────────────────────────────
 
-    [Fact]
-    public void CorrectAnswer_IsAlwaysAmongOptions()
+    public static IEnumerable<object[]> FiveDistinctWordCases()
     {
         var words = FiveDistinctWords();
-        var service = Build(words);
-
-        for (int i = 0; i < 500; i++)
-        {
-            var session = service.CreateQuizSession(Config(), null!)!;
-            session.Quiz.Options.Should().Contain(session.Quiz.CorrectAnswer);
-        }
+        return words.Select(w => new object[] { w, words });
     }
 
-    [Fact]
-    public void Options_NeverContainDuplicates()
+    [Theory]
+    [MemberData(nameof(FiveDistinctWordCases))]
+    public void CorrectAnswer_AppearsExactlyOnceInOptions(WordEntry word, WordEntry[] words)
     {
-        var words = FiveDistinctWords();
-        var service = Build(words);
-
-        for (int i = 0; i < 500; i++)
-        {
-            var session = service.CreateQuizSession(Config(), null!)!;
-            session.Quiz.Options
-                .GroupBy(o => o.Trim(), StringComparer.OrdinalIgnoreCase)
-                .Should().AllSatisfy(g => g.Count().Should().Be(1));
-        }
+        var session = Build(words).CreateQuizSessionForWord(word, Config(), null!);
+        session.Quiz.Options
+            .Count(o => string.Equals(o.Trim(), session.Quiz.CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Should().Be(1);
     }
 
-    [Fact]
-    public void Options_CountMatchesConfiguration()
+    [Theory]
+    [MemberData(nameof(FiveDistinctWordCases))]
+    public void Options_NeverContainDuplicates(WordEntry word, WordEntry[] words)
+    {
+        var session = Build(words).CreateQuizSessionForWord(word, Config(), null!);
+        session.Quiz.Options
+            .GroupBy(o => o.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Should().AllSatisfy(g => g.Count().Should().Be(1));
+    }
+
+    [Theory]
+    [MemberData(nameof(FiveDistinctWordCases))]
+    public void Options_CountMatchesConfiguration(WordEntry word, WordEntry[] words)
+    {
+        var session = Build(words).CreateQuizSessionForWord(word, Config(options: 3), null!);
+        session.Quiz.Options.Should().HaveCount(3);
+    }
+
+    // ── Direction mapping ─────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(QuizDirection.Direct,  "hond", "dog")]
+    [InlineData(QuizDirection.Reverse, "dog",  "hond")]
+    public void Quiz_QuestionAndAnswer_MatchDirection(
+        QuizDirection direction, string expectedQuestion, string expectedAnswer)
     {
         var words = FiveDistinctWords();
-        var service = Build(words);
-
-        for (int i = 0; i < 200; i++)
-        {
-            var session = service.CreateQuizSession(Config(options: 3), null!)!;
-            session.Quiz.Options.Should().HaveCount(3);
-        }
+        var hond = words.Single(w => w.Question == "hond");
+        var session = Build(words).CreateQuizSessionForWord(hond, Config(dir: direction), null!);
+        session.Quiz.Question.Should().Be(expectedQuestion);
+        session.Quiz.CorrectAnswer.Should().Be(expectedAnswer);
     }
 
     // ── IsSynonym – Direct mode ───────────────────────────────────────────────
 
-    [Fact]
-    public void Options_NeverShowSameAnswerTwice_DirectMode()
+    public static IEnumerable<object[]> CarSynonymCases()
+    {
+        var auto  = WordEntryFixture.Make("auto",  "car",  WordGroup.Other);
+        var wagen = WordEntryFixture.Make("wagen", "car",  WordGroup.Other);
+        // Only one non-synonym distractor so the synonym is always forced into
+        // the candidate pool when not filtered (pool size == optionCount - 1).
+        WordEntry[] words = [auto, wagen, WordEntryFixture.Make("vis", "fish", WordGroup.Other)];
+        yield return [auto,  words];
+        yield return [wagen, words];
+    }
+
+    [Theory]
+    [MemberData(nameof(CarSynonymCases))]
+    public void Options_NeverShowSameAnswerTwice_DirectMode(WordEntry word, WordEntry[] words)
     {
         // "auto" and "wagen" both translate to "car" — only one should appear
-        var words = new[]
-        {
-            WordEntryFixture.Make("auto",  "car",  WordGroup.Other),
-            WordEntryFixture.Make("wagen", "car",  WordGroup.Other), // synonym
-            WordEntryFixture.Make("vis",   "fish", WordGroup.Other),
-            WordEntryFixture.Make("vogel", "bird", WordGroup.Other),
-            WordEntryFixture.Make("boom",  "tree", WordGroup.Other),
-        };
-        var service = Build(words);
-
-        for (int i = 0; i < 500; i++)
-        {
-            var session = service.CreateQuizSession(Config(), null!)!;
-            var carCount = session.Quiz.Options
-                .Count(o => string.Equals(o.Trim(), "car", StringComparison.OrdinalIgnoreCase));
-            carCount.Should().BeLessOrEqualTo(1,
-                because: "two words with the same answer must not both appear as options");
-        }
+        var session = Build(words).CreateQuizSessionForWord(word, Config(), null!);
+        session.Quiz.Options
+            .Count(o => string.Equals(o.Trim(), "car", StringComparison.OrdinalIgnoreCase))
+            .Should().Be(1, because: "the correct answer must appear exactly once; the synonym must be excluded");
     }
 
     // ── IsAlsoCorrect – Reverse mode ──────────────────────────────────────────
@@ -98,14 +104,9 @@ public class QuizServiceTests
     {
         var beslissen = WordEntryFixture.Make("beslissen", "to decide", WordGroup.Verb);
         var besluiten = WordEntryFixture.Make("besluiten", "to decide", WordGroup.Verb);
-        WordEntry[] words =
-        [
-            beslissen,
-            besluiten,
-            WordEntryFixture.Make("lopen",  "to walk", WordGroup.Verb),
-            WordEntryFixture.Make("rennen", "to run",  WordGroup.Verb),
-            WordEntryFixture.Make("werken", "to work", WordGroup.Verb),
-        ];
+        // Only one non-synonym distractor so the ambiguous word is always forced
+        // into the candidate pool when not filtered (pool size == optionCount - 1).
+        WordEntry[] words = [beslissen, besluiten, WordEntryFixture.Make("lopen", "to walk", WordGroup.Verb)];
         yield return [beslissen, words];
         yield return [besluiten, words];
     }
@@ -126,6 +127,23 @@ public class QuizServiceTests
             string.Equals(o.Trim(), "besluiten", StringComparison.OrdinalIgnoreCase));
         decideCount.Should().Be(1,
             because: "the selected correct answer must appear exactly once; the other synonym must be excluded");
+    }
+
+    // ── Constrained pool ──────────────────────────────────────────────────────
+
+    [Fact]
+    public void Options_FewerThanRequested_WhenPoolIsConstrained()
+    {
+        var auto = WordEntryFixture.Make("auto", "car", WordGroup.Other);
+        WordEntry[] words =
+        [
+            auto,
+            WordEntryFixture.Make("wagen", "car",  WordGroup.Other), // synonym, excluded from pool
+            WordEntryFixture.Make("vis",   "fish", WordGroup.Other), // only available distractor
+        ];
+        // OptionCount = 3 needs 2 distractors, but only 1 is available after synonym exclusion
+        var session = Build(words).CreateQuizSessionForWord(auto, Config(options: 3), null!);
+        session.Quiz.Options.Should().HaveCount(2);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
