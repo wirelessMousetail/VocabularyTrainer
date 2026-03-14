@@ -17,8 +17,8 @@ public class CsvWordRepository
                 continue;
 
             var parts = line.Split(';');
-            if (parts.Length != 2)
-                continue;
+            if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+                throw new FormatException($"Invalid line in CSV: '{line}'");
 
             result.Add(new WordEntry(parts[0], parts[1]));
         }

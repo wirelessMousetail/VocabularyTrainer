@@ -26,16 +26,20 @@ public class SettingsServiceTests : IDisposable
 
         settings.QuizIntervalSeconds.Should().Be(300);
         settings.QuizConfiguration.OptionCount.Should().Be(3);
-        settings.QuizConfiguration.AutoCloseAfterCorrectSeconds.Should().Be(5);//todo check all properties 
+        settings.QuizConfiguration.AutoCloseAfterCorrectSeconds.Should().Be(5);
+        settings.QuizConfiguration.ShowCorrectAnswerOnWrong.Should().BeFalse();
+        settings.QuizConfiguration.MaxAttemptsPerQuiz.Should().BeNull();
+        settings.QuizConfiguration.Direction.Should().Be(QuizDirection.Direct);
     }
 
     [Fact]
-    public void GetSettings_ReturnsDefaults_WhenFileIsCorrupt()
+    public void GetSettings_ThrowsException_WhenFileIsCorrupt()
     {
         File.WriteAllText(_tempFile, "not valid json {{{{");
-        var service = new SettingsService(_tempFile);
 
-        service.GetSettings().QuizIntervalSeconds.Should().Be(300); //todo let's fail if corrupt
+        var act = () => new SettingsService(_tempFile);
+
+        act.Should().Throw<Exception>();
     }
 
     // ── UpdateSettings ────────────────────────────────────────────────────────
@@ -53,10 +57,37 @@ public class SettingsServiceTests : IDisposable
         settings.QuizIntervalSeconds.Should().Be(600);
         settings.QuizConfiguration.AutoCloseAfterCorrectSeconds.Should().Be(10);
         settings.QuizConfiguration.OptionCount.Should().Be(4);
-        settings.QuizConfiguration.Direction.Should().Be(QuizDirection.Reverse); //todo check all properties
+        settings.QuizConfiguration.Direction.Should().Be(QuizDirection.Reverse);
+        settings.QuizConfiguration.ShowCorrectAnswerOnWrong.Should().BeFalse();
+        settings.QuizConfiguration.MaxAttemptsPerQuiz.Should().BeNull();
     }
-    
-    //todo test that loads existing file correctly (json string as an input)
+
+    [Fact]
+    public void GetSettings_LoadsAllProperties_FromExistingFile()
+    {
+        var json = """
+            {
+              "QuizIntervalSeconds": 120,
+              "QuizConfiguration": {
+                "OptionCount": 5,
+                "AutoCloseAfterCorrectSeconds": 8,
+                "ShowCorrectAnswerOnWrong": true,
+                "MaxAttemptsPerQuiz": 2,
+                "Direction": 1
+              }
+            }
+            """;
+        File.WriteAllText(_tempFile, json);
+
+        var settings = new SettingsService(_tempFile).GetSettings();
+
+        settings.QuizIntervalSeconds.Should().Be(120);
+        settings.QuizConfiguration.OptionCount.Should().Be(5);
+        settings.QuizConfiguration.AutoCloseAfterCorrectSeconds.Should().Be(8);
+        settings.QuizConfiguration.ShowCorrectAnswerOnWrong.Should().BeTrue();
+        settings.QuizConfiguration.MaxAttemptsPerQuiz.Should().Be(2);
+        settings.QuizConfiguration.Direction.Should().Be(QuizDirection.Reverse);
+    }
 
     [Fact]
     public void UpdateSettings_PreservesUnchangedFields() 

@@ -28,14 +28,15 @@ public class CsvWordRepositoryTests : IDisposable
     [Theory]
     [InlineData("hond")]           // too few columns
     [InlineData("hond;dog;extra")] // too many columns
-    public void Load_SkipsLines_WithWrongColumnCount(string line) //todo change behavior: fail if not compliant (1 or more than 2 columns is not compliant, 2 columns if one of them empty - not compliant, completely empty line - compliant  
+    [InlineData(";dog")]           // empty question
+    [InlineData("hond;")]          // empty answer
+    public void Load_ThrowsFormatException_ForNonCompliantLines(string line)
     {
         File.WriteAllLines(_tempFile, [line, "vis;fish"]);
 
-        var result = _repo.Load(_tempFile);
+        var act = () => _repo.Load(_tempFile);
 
-        result.Should().HaveCount(1);
-        result[0].Question.Should().Be("vis");
+        act.Should().Throw<FormatException>();
     }
 
     [Fact]

@@ -75,16 +75,24 @@ public class QuizServiceTests
     }
 
     [Fact]
-    public void Quiz_QuestionAndAnswer_AreValid_ForRandomDirection() //todo run 100 times to make sure direction changes
+    public void Quiz_QuestionAndAnswer_AreValid_ForRandomDirection()
     {
         var words = FiveDistinctWords();
         var hond = words.Single(w => w.Question == "hond");
-        var session = Build(words).CreateQuizSessionForWord(hond, Config(dir: QuizDirection.Random), null!);
+        var service = Build(words);
 
-        // Either direct ("hond"→"dog") or reverse ("dog"→"hond") is valid
-        (session.Quiz.Question, session.Quiz.CorrectAnswer).Should().BeOneOf(
-            ("hond", "dog"),
-            ("dog",  "hond"));
+        var results = Enumerable.Range(0, 100)
+            .Select(_ => service.CreateQuizSessionForWord(hond, Config(dir: QuizDirection.Random), null!))
+            .Select(s => (s.Quiz.Question, s.Quiz.CorrectAnswer))
+            .ToList();
+
+        // Every result must be one of the two valid direction combinations
+        results.Should().AllSatisfy(r =>
+            r.Should().BeOneOf(("hond", "dog"), ("dog", "hond")));
+
+        // Both directions must appear at least once across 100 runs
+        results.Should().Contain(("hond", "dog"));
+        results.Should().Contain(("dog", "hond"));
     }
 
     // ── IsSynonym – Direct mode ───────────────────────────────────────────────
