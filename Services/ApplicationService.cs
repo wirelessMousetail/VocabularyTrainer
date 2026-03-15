@@ -163,6 +163,7 @@ public class ApplicationService : IDisposable
     /// </summary>
     public void Dispose()
     {
+        _nextQuizTimer.Elapsed -= OnTimerElapsed;
         _nextQuizTimer.Stop();
         _nextQuizTimer.Dispose();
     }
