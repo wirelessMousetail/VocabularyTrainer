@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Controls;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
@@ -13,6 +14,8 @@ public class TrayIconService : IDisposable
 {
     private const string PauseLabel = "Pause";
     private const string ResumeLabel = "Resume";
+    private const string ActiveIconUri = "avares://VocabularyTrainer/Resources/tray.ico";
+    private const string PausedIconUri = "avares://VocabularyTrainer/Resources/tray-paused.ico";
 
     private readonly ApplicationService _applicationService;
     private readonly EventHandler<QuizSession> _onQuizRequested;
@@ -84,6 +87,7 @@ public class TrayIconService : IDisposable
             _applicationService.Resume();
             if (_pauseResumeMenuItem != null)
                 _pauseResumeMenuItem.Header = PauseLabel;
+            SetTrayIcon(ActiveIconUri);
             _tooltipTimer?.Start();
         }
         else
@@ -91,12 +95,22 @@ public class TrayIconService : IDisposable
             _applicationService.Pause();
             if (_pauseResumeMenuItem != null)
                 _pauseResumeMenuItem.Header = ResumeLabel;
+            SetTrayIcon(PausedIconUri);
             _tooltipTimer?.Stop();
         }
         UpdateTooltip();
     }
 
     private void OnApplicationStateChanged(object? sender, EventArgs e) => UpdateTooltip();
+
+    private void SetTrayIcon(string uri)
+    {
+        if (_trayIcon == null) return;
+        WindowIcon icon;
+        using (var stream = AssetLoader.Open(new Uri(uri)))
+            icon = new WindowIcon(stream);
+        Dispatcher.UIThread.Post(() => _trayIcon.Icon = icon);
+    }
 
     private void UpdateTooltip()
     {
