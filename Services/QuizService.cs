@@ -69,23 +69,7 @@ public class QuizService
             _ => false
         };
 
-        var correctTarget = (isReversed ? correct.Question : correct.Answer).Trim();
-        bool IsSynonym(WordEntry w) =>
-            string.Equals((isReversed ? w.Question : w.Answer).Trim(), correctTarget, StringComparison.OrdinalIgnoreCase);
-
-        var correctSource = (isReversed ? correct.Answer : correct.Question).Trim();
-        bool IsAlsoCorrect(WordEntry w) =>
-            string.Equals((isReversed ? w.Answer : w.Question).Trim(), correctSource, StringComparison.OrdinalIgnoreCase);
-
-        var sameGroupItems = _words
-            .Where(i =>
-                i != correct &&
-                i.Group == correct.Group &&
-                !IsSynonym(i) &&
-                !IsAlsoCorrect(i))
-            .ToList();
-
-        IEnumerable<WordEntry> pool = GetOptionPool(sameGroupItems, optionCount, correct, IsSynonym, IsAlsoCorrect);
+        IEnumerable<WordEntry> pool = GetOptionPool(correct, optionCount, isReversed);
 
         var options = pool
             .Select(w => isReversed ? w.Question : w.Answer)
@@ -108,17 +92,24 @@ public class QuizService
         );
     }
 
-    private IEnumerable<WordEntry> GetOptionPool(
-        List<WordEntry> sameGroupItems,
-        int optionCount,
-        WordEntry correct,
-        Func<WordEntry, bool> isSynonym,
-        Func<WordEntry, bool> isAlsoCorrect)
+    private IEnumerable<WordEntry> GetOptionPool(WordEntry correct, int optionCount, bool isReversed)
     {
+        var correctTarget = (isReversed ? correct.Question : correct.Answer).Trim();
+        bool IsSynonym(WordEntry w) =>
+            string.Equals((isReversed ? w.Question : w.Answer).Trim(), correctTarget, StringComparison.OrdinalIgnoreCase);
+
+        var correctSource = (isReversed ? correct.Answer : correct.Question).Trim();
+        bool IsAlsoCorrect(WordEntry w) =>
+            string.Equals((isReversed ? w.Answer : w.Question).Trim(), correctSource, StringComparison.OrdinalIgnoreCase);
+
+        var sameGroupItems = _words
+            .Where(i => i != correct && i.Group == correct.Group && !IsSynonym(i) && !IsAlsoCorrect(i))
+            .ToList();
+
         if (sameGroupItems.Count >= optionCount - 1)
             return sameGroupItems;
 
-        return _words.Where(w => w != correct && !isSynonym(w) && !isAlsoCorrect(w));
+        return _words.Where(w => w != correct && !IsSynonym(w) && !IsAlsoCorrect(w));
     }
 
     /// <summary>
