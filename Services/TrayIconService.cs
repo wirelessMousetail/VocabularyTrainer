@@ -66,8 +66,9 @@ public class TrayIconService : IDisposable
         _trayIcon.Clicked += (_, _) => _applicationService.ShowQuizNow();
         _applicationService.QuizRequested += (_, _) => UpdateTooltip();
         _applicationService.QuizClosed += (_, _) => UpdateTooltip();
+        _applicationService.TimerRestarted += (_, _) => UpdateTooltip();
 
-        _tooltipTimer = new System.Timers.Timer(30_000) { AutoReset = true };
+        _tooltipTimer = new System.Timers.Timer(10_000) { AutoReset = true };
         _tooltipTimer.Elapsed += (_, _) => UpdateTooltip();
         _tooltipTimer.Start();
         UpdateTooltip();
@@ -105,7 +106,9 @@ public class TrayIconService : IDisposable
             var remaining = _applicationService.GetTimeUntilNextQuiz();
             text = remaining == null
                 ? "VocabularyTrainer"
-                : $"VocabularyTrainer \u2014 next quiz in {(int)Math.Ceiling(remaining.Value.TotalMinutes)} min";
+                : remaining.Value.TotalMinutes < 1
+                    ? "VocabularyTrainer \u2014 next quiz in less than a minute"
+                    : $"VocabularyTrainer \u2014 next quiz in approximately {(int)Math.Ceiling(remaining.Value.TotalMinutes)} min";
         }
         Dispatcher.UIThread.Post(() => _trayIcon.ToolTipText = text);
     }

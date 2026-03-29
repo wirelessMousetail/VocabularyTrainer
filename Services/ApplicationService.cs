@@ -45,6 +45,11 @@ public class ApplicationService : IDisposable
     public event EventHandler? QuizClosed;
 
     /// <summary>
+    /// Event raised when the quiz timer is restarted due to a settings change.
+    /// </summary>
+    public event EventHandler? TimerRestarted;
+
+    /// <summary>
     /// Gets a value indicating whether the application is paused.
     /// </summary>
     public bool IsPaused => _isPaused;
@@ -123,6 +128,7 @@ public class ApplicationService : IDisposable
             _nextQuizTimer.Stop();
             _timerStartedAt = DateTime.UtcNow;
             _nextQuizTimer.Start();
+            TimerRestarted?.Invoke(this, EventArgs.Empty);
         }
     }
 
