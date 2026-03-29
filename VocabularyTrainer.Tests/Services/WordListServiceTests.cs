@@ -73,6 +73,19 @@ public class WordListServiceTests : IDisposable
     }
 
     [Fact]
+    public void LoadAndMerge_NewWords_GetInitialWeight()
+    {
+        File.WriteAllLines(_precompiledPath, ["de hond;dog"]);
+        File.WriteAllLines(_managedPath, []);
+
+        var result = new WordListService(_precompiledPath, _managedPath).LoadAndMerge();
+
+        result.Should().HaveCount(1);
+        result[0].WeightData.Weight.Should().Be(WordWeightStrategy.MaxWeight / 2);
+        result[0].WeightData.CorrectStreak.Should().Be(WordWeightStrategy.LinearStreakThreshold);
+    }
+
+    [Fact]
     public void LoadAndMerge_DoesNotDuplicateWords_WhenAllAlreadyInManaged()
     {
         File.WriteAllLines(_precompiledPath, ["hond;dog"]);

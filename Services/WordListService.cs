@@ -40,8 +40,8 @@ public class WordListService
 
         if (!File.Exists(_managedPath))
         {
-            // No managed list exists - create it from precompiled
-            _words = precompiled;
+            // No managed list exists - create it from precompiled with initial weights
+            _words = precompiled.Select(ApplyInitialWeight).ToList();
             SaveManaged();
             return _words;
         }
@@ -52,8 +52,9 @@ public class WordListService
         var managedQuestions = _words.Select(w => w.Question).ToHashSet();
         var newWords = precompiled
             .Where(w => !managedQuestions.Contains(w.Question))
+            .Select(ApplyInitialWeight)
             .ToList();
-        
+
         if (newWords.Count > 0)
         {
             _words.AddRange(newWords);
@@ -61,6 +62,14 @@ public class WordListService
         }
 
         return _words;
+    }
+
+    private static WordEntry ApplyInitialWeight(WordEntry word)
+    {
+        var weightData = new WeightData(
+            WordWeightStrategy.MaxWeight / 2,
+            WordWeightStrategy.LinearStreakThreshold);
+        return new WordEntry(word.Question, word.Answer, weightData, word.Group);
     }
 
     /// <summary>

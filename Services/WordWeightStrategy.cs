@@ -9,8 +9,8 @@ namespace VocabularyTrainer.Services;
 /// </summary>
 public class WordWeightStrategy
 {
-    private const int MaxWeight = 100;
-    private const int LinearStreakThreshold = 5;
+    public const int MaxWeight = 100;
+    public const int LinearStreakThreshold = 5;
 
     /// <summary>
     /// Registers a correct answer for a word, decreasing its weight and incrementing the correct streak.
