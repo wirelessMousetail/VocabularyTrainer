@@ -1,4 +1,6 @@
-﻿namespace VocabularyTrainer.Services;
+﻿using VocabularyTrainer.Models;
+
+namespace VocabularyTrainer.Services;
 
 public class QuizPresenter : IQuizPresenter
 {

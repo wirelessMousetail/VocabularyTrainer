@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using VocabularyTrainer.Models;
+using System.Collections.Generic;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Models;
 
 public class Quiz
 {
