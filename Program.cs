@@ -36,3 +36,5 @@ static class Program
 
 
 //todo Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
+
+//todo improve to add other languages support 
