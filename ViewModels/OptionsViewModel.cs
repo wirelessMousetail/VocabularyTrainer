@@ -123,21 +123,22 @@ public class OptionsViewModel : ViewModelBase
         }
     }
 
+    private QuizDirection GetSelectedDirection()
+    {
+        if (IsDirectMode)
+            return QuizDirection.Direct;
+        if (IsReverseMode)
+            return QuizDirection.Reverse;
+        return QuizDirection.Random;
+    }
+
     private void SaveAndClose()
     {
-        QuizDirection direction;
-        if (IsDirectMode)
-            direction = QuizDirection.Direct;
-        else if (IsReverseMode)
-            direction = QuizDirection.Reverse;
-        else
-            direction = QuizDirection.Random;
-
         _settingsService.UpdateSettings(
             QuizIntervalSeconds,
             AutoCloseSeconds,
             OptionCount,
-            direction
+            GetSelectedDirection()
         );
 
         _onSettingsApplied();

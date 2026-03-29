@@ -8,6 +8,9 @@ namespace VocabularyTrainer.Services;
 /// </summary>
 public class TrayIconService
 {
+    private const string PauseLabel = "Pause";
+    private const string ResumeLabel = "Resume";
+
     private readonly ApplicationService _applicationService;
     private TrayIcon? _trayIcon;
     private NativeMenuItem? _pauseResumeMenuItem;
@@ -32,7 +35,7 @@ public class TrayIconService
         // Create menu items
         _pauseResumeMenuItem = new NativeMenuItem
         {
-            Header = "Pause"
+            Header = PauseLabel
         };
         _pauseResumeMenuItem.Click += OnPauseResumeClicked;
 
@@ -66,7 +69,7 @@ public class TrayIconService
             _applicationService.Resume();
             if (_pauseResumeMenuItem != null)
             {
-                _pauseResumeMenuItem.Header = "Pause";
+                _pauseResumeMenuItem.Header = PauseLabel;
             }
         }
         else
@@ -74,7 +77,7 @@ public class TrayIconService
             _applicationService.Pause();
             if (_pauseResumeMenuItem != null)
             {
-                _pauseResumeMenuItem.Header = "Resume";
+                _pauseResumeMenuItem.Header = ResumeLabel;
             }
         }
     }

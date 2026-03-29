@@ -85,9 +85,7 @@ public class QuizService
                 !IsAlsoCorrect(i))
             .ToList();
 
-        IEnumerable<WordEntry> pool = sameGroupItems.Count >= optionCount - 1
-            ? sameGroupItems
-            : _words.Where(w => w != correct && !IsSynonym(w) && !IsAlsoCorrect(w));
+        IEnumerable<WordEntry> pool = GetOptionPool(sameGroupItems, optionCount, correct, IsSynonym, IsAlsoCorrect);
 
         var options = pool
             .Select(w => isReversed ? w.Question : w.Answer)
@@ -108,6 +106,19 @@ public class QuizService
             options,
             correct
         );
+    }
+
+    private IEnumerable<WordEntry> GetOptionPool(
+        List<WordEntry> sameGroupItems,
+        int optionCount,
+        WordEntry correct,
+        Func<WordEntry, bool> isSynonym,
+        Func<WordEntry, bool> isAlsoCorrect)
+    {
+        if (sameGroupItems.Count >= optionCount - 1)
+            return sameGroupItems;
+
+        return _words.Where(w => w != correct && !isSynonym(w) && !isAlsoCorrect(w));
     }
 
     /// <summary>
