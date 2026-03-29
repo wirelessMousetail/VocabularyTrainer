@@ -148,6 +148,7 @@ public class QuizViewModel : ViewModelBase
     {
         if (IsQuizCompleted)
         {
+            _autoCloseTimer?.Stop();
             _onQuizCompleted();
         }
     }

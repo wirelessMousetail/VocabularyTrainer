@@ -111,6 +111,24 @@ public class WordListServiceTests : IDisposable
             .Should().Throw<InvalidDataException>();
     }
 
+    // ── Whitespace trimming ───────────────────────────────────────────────────
+
+    [Fact]
+    public void LoadAndMerge_PreservesProgress_WhenManagedCsvHasWhitespace()
+    {
+        // arrange
+        File.WriteAllLines(_precompiledPath, ["de hond;dog"]);
+        File.WriteAllLines(_managedPath, [" de hond ; dog ; 5 ; 2 ; Noun"]);
+
+        // act
+        var result = new WordListService(_precompiledPath, _managedPath).LoadAndMerge();
+
+        // assert
+        result.Should().HaveCount(1);
+        result[0].WeightData.Weight.Should().Be(5);
+        result[0].WeightData.CorrectStreak.Should().Be(2);
+    }
+
     // ── SaveWords ─────────────────────────────────────────────────────────────
 
     [Fact]

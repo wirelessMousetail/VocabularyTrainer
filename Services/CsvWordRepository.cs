@@ -20,7 +20,7 @@ public class CsvWordRepository
             if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
                 throw new FormatException($"Invalid line in CSV: '{line}'");
 
-            result.Add(new WordEntry(parts[0], parts[1]));
+            result.Add(new WordEntry(parts[0].Trim(), parts[1].Trim()));
         }
 
         return result;

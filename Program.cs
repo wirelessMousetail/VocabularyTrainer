@@ -64,4 +64,3 @@ static class Program
 //   + Remember wrong answers 
 //   Track stats
 //   live preview of “next quiz in X minutes”
-//   Just tell me what you want next 😄

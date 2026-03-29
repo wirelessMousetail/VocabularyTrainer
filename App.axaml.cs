@@ -49,7 +49,7 @@ public partial class App : Application
             {
                 appService = new ApplicationService(_settingsService);
             }
-            catch (Exception ex) when (ex is InvalidDataException or FormatException)
+            catch (Exception ex) when (ex is InvalidDataException or FormatException or IOException)
             {
                 ShowFatalError(ex.Message);
                 base.OnFrameworkInitializationCompleted();

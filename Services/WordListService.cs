@@ -85,8 +85,8 @@ public class WordListService
             if (parts.Length < 2)
                 continue;
 
-            var question = parts[0];
-            var answer = parts[1];
+            var question = parts[0].Trim();
+            var answer = parts[1].Trim();
 
             if (string.IsNullOrWhiteSpace(question) || string.IsNullOrWhiteSpace(answer))
                 throw new InvalidDataException($"Invalid word list: empty question or answer found in '{_managedPath}'. Please fix or delete the file and restart.");
