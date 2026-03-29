@@ -71,7 +71,9 @@ public class QuizService
 
         IEnumerable<WordEntry> pool = GetOptionPool(correct, optionCount, isReversed);
 
-        var options = pool
+        var poolList = pool.ToList();
+
+        var options = poolList
             .Select(w => isReversed ? w.Question : w.Answer)
             .Distinct()
             .OrderBy(_ => Random.Shared.Next())
@@ -84,11 +86,19 @@ public class QuizService
             .OrderBy(_ => Random.Shared.Next())
             .ToList();
 
+        var optionEntries = new Dictionary<string, WordEntry>();
+        foreach (var w in poolList)
+        {
+            var key = isReversed ? w.Question : w.Answer;
+            optionEntries.TryAdd(key, w);
+        }
+
         return new Quiz(
             isReversed ? correct.Answer : correct.Question,
             isReversed ? correct.Question : correct.Answer,
             options,
-            correct
+            correct,
+            optionEntries
         );
     }
 

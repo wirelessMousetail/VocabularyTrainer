@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FluentAssertions;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
@@ -86,6 +87,25 @@ public class QuizPresenterTests : IDisposable
         word.WeightData.CorrectStreak.Should().Be(0);
     }
 
+    [Fact]
+    public void WrongAnswer_IncreasesWeight_OfSelectedOption()
+    {
+        var quizWord = WordEntryFixture.Make("de hond", "dog", weight: 0);
+        var distractorWord = WordEntryFixture.Make("de kat", "cat", weight: 0);
+
+        var optionEntries = new Dictionary<string, WordEntry>
+        {
+            { "cat", distractorWord }
+        };
+
+        var quiz = MakeQuiz("de hond", "dog", ["cat", "fish"], quizWord, optionEntries);
+        var presenter = new QuizPresenter(quiz, _strategy, _wordListService);
+
+        presenter.OnAnswerSelected("cat");
+
+        distractorWord.WeightData.Weight.Should().BeGreaterThan(0);
+    }
+
     // ── Max attempts ──────────────────────────────────────────────────────────
 
     [Fact]
@@ -144,10 +164,12 @@ public class QuizPresenterTests : IDisposable
         string question,
         string correctAnswer,
         IEnumerable<string> otherOptions,
-        WordEntry? word = null)
+        WordEntry? word = null,
+        IReadOnlyDictionary<string, WordEntry>? optionEntries = null)
     {
         word ??= WordEntryFixture.Make(question, correctAnswer);
         var options = otherOptions.Append(correctAnswer).ToList();
-        return new Quiz(question, correctAnswer, options, word);
+        return new Quiz(question, correctAnswer, options, word,
+            optionEntries ?? new Dictionary<string, WordEntry>());
     }
 }
