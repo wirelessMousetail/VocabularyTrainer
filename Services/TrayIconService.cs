@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
 
 namespace VocabularyTrainer.Services;
@@ -14,6 +15,7 @@ public class TrayIconService : IDisposable
     private const string ResumeLabel = "Resume";
 
     private readonly ApplicationService _applicationService;
+    private readonly EventHandler<QuizSession> _onQuizRequested;
     private TrayIcon? _trayIcon;
     private NativeMenuItem? _pauseResumeMenuItem;
     private System.Timers.Timer? _tooltipTimer;
@@ -25,6 +27,7 @@ public class TrayIconService : IDisposable
     public TrayIconService(ApplicationService applicationService)
     {
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
+        _onQuizRequested = (_, _) => UpdateTooltip();
     }
 
     /// <summary>
@@ -64,9 +67,9 @@ public class TrayIconService : IDisposable
 
         _trayIcon.Menu = menu;
         _trayIcon.Clicked += (_, _) => _applicationService.ShowQuizNow();
-        _applicationService.QuizRequested += (_, _) => UpdateTooltip();
-        _applicationService.QuizClosed += (_, _) => UpdateTooltip();
-        _applicationService.TimerRestarted += (_, _) => UpdateTooltip();
+        _applicationService.QuizRequested += _onQuizRequested;
+        _applicationService.QuizClosed += OnApplicationStateChanged;
+        _applicationService.TimerRestarted += OnApplicationStateChanged;
 
         _tooltipTimer = new System.Timers.Timer(10_000) { AutoReset = true };
         _tooltipTimer.Elapsed += (_, _) => UpdateTooltip();
@@ -80,20 +83,20 @@ public class TrayIconService : IDisposable
         {
             _applicationService.Resume();
             if (_pauseResumeMenuItem != null)
-            {
                 _pauseResumeMenuItem.Header = PauseLabel;
-            }
+            _tooltipTimer?.Start();
         }
         else
         {
             _applicationService.Pause();
             if (_pauseResumeMenuItem != null)
-            {
                 _pauseResumeMenuItem.Header = ResumeLabel;
-            }
+            _tooltipTimer?.Stop();
         }
         UpdateTooltip();
     }
+
+    private void OnApplicationStateChanged(object? sender, EventArgs e) => UpdateTooltip();
 
     private void UpdateTooltip()
     {
@@ -118,6 +121,9 @@ public class TrayIconService : IDisposable
     /// </summary>
     public void Dispose()
     {
+        _applicationService.QuizRequested -= _onQuizRequested;
+        _applicationService.QuizClosed -= OnApplicationStateChanged;
+        _applicationService.TimerRestarted -= OnApplicationStateChanged;
         _tooltipTimer?.Stop();
         _tooltipTimer?.Dispose();
     }
