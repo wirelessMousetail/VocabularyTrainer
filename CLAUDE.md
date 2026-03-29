@@ -84,3 +84,9 @@ On startup `WordListService.LoadAndMerge()` merges the two CSVs: new words from 
 ### Test fixtures
 
 \`WordEntryFixture.Make(question, answer, group?, weight?, streak?)\` creates test `WordEntry` instances. Tests inline-construct services (no shared `Build()` helper).
+
+## Development guidelines
+
+**Test coverage:** All business logic must be covered by unit tests. Every service method with non-trivial logic (weight calculation, word selection, CSV parsing, merge behaviour, answer evaluation) needs a corresponding test. When fixing a bug, add a regression test that fails before the fix and passes after.
+
+**Layer separation:** Keep UI, business logic, and data access strictly separated. ViewModels must not reference services directly — they receive data and callbacks via constructor parameters. Services must not reference ViewModels or Avalonia types. `App.axaml.cs` is the only place that wires layers together.
