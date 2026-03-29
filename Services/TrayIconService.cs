@@ -1,4 +1,6 @@
+using System;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using VocabularyTrainer.Services;
 
 namespace VocabularyTrainer.Services;
@@ -6,7 +8,7 @@ namespace VocabularyTrainer.Services;
 /// <summary>
 /// Service for managing the system tray icon and menu.
 /// </summary>
-public class TrayIconService
+public class TrayIconService : IDisposable
 {
     private const string PauseLabel = "Pause";
     private const string ResumeLabel = "Resume";
@@ -14,6 +16,7 @@ public class TrayIconService
     private readonly ApplicationService _applicationService;
     private TrayIcon? _trayIcon;
     private NativeMenuItem? _pauseResumeMenuItem;
+    private System.Timers.Timer? _tooltipTimer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TrayIconService"/> class.
@@ -60,6 +63,14 @@ public class TrayIconService
         menu.Items.Add(exitMenuItem);
 
         _trayIcon.Menu = menu;
+        _trayIcon.Clicked += (_, _) => _applicationService.ShowQuizNow();
+        _applicationService.QuizRequested += (_, _) => UpdateTooltip();
+        _applicationService.QuizClosed += (_, _) => UpdateTooltip();
+
+        _tooltipTimer = new System.Timers.Timer(30_000) { AutoReset = true };
+        _tooltipTimer.Elapsed += (_, _) => UpdateTooltip();
+        _tooltipTimer.Start();
+        UpdateTooltip();
     }
 
     private void OnPauseResumeClicked(object? sender, EventArgs e)
@@ -80,5 +91,31 @@ public class TrayIconService
                 _pauseResumeMenuItem.Header = ResumeLabel;
             }
         }
+        UpdateTooltip();
+    }
+
+    private void UpdateTooltip()
+    {
+        if (_trayIcon == null) return;
+        string text;
+        if (_applicationService.IsPaused)
+            text = "VocabularyTrainer (Paused)";
+        else
+        {
+            var remaining = _applicationService.GetTimeUntilNextQuiz();
+            text = remaining == null
+                ? "VocabularyTrainer"
+                : $"VocabularyTrainer \u2014 next quiz in {(int)Math.Ceiling(remaining.Value.TotalMinutes)} min";
+        }
+        Dispatcher.UIThread.Post(() => _trayIcon.ToolTipText = text);
+    }
+
+    /// <summary>
+    /// Disposes resources used by the service.
+    /// </summary>
+    public void Dispose()
+    {
+        _tooltipTimer?.Stop();
+        _tooltipTimer?.Dispose();
     }
 }

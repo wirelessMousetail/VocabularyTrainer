@@ -15,6 +15,8 @@ public class ApplicationService : IDisposable
     private readonly SettingsService _settingsService;
     private readonly System.Timers.Timer _nextQuizTimer;
     private bool _isPaused;
+    private bool _isQuizOpen;
+    private DateTime _timerStartedAt;
 
     /// <summary>
     /// Event raised when a new quiz should be shown.
@@ -36,6 +38,11 @@ public class ApplicationService : IDisposable
     /// The string argument contains the error message to display to the user.
     /// </summary>
     public event EventHandler<string>? ErrorOccurred;
+
+    /// <summary>
+    /// Event raised when the current quiz window is closed.
+    /// </summary>
+    public event EventHandler? QuizClosed;
 
     /// <summary>
     /// Gets a value indicating whether the application is paused.
@@ -91,6 +98,7 @@ public class ApplicationService : IDisposable
             return;
 
         _isPaused = false;
+        _timerStartedAt = DateTime.UtcNow;
         _nextQuizTimer.Start();
     }
 
@@ -113,6 +121,7 @@ public class ApplicationService : IDisposable
         if (!_isPaused)
         {
             _nextQuizTimer.Stop();
+            _timerStartedAt = DateTime.UtcNow;
             _nextQuizTimer.Start();
         }
     }
@@ -130,10 +139,35 @@ public class ApplicationService : IDisposable
     /// </summary>
     public void OnQuizCompleted()
     {
+        _isQuizOpen = false;
         if (!_isPaused)
         {
+            _timerStartedAt = DateTime.UtcNow;
             _nextQuizTimer.Start();
         }
+        QuizClosed?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Shows a quiz immediately, unless the application is paused or already opened.
+    /// </summary>
+    public void ShowQuizNow()
+    {
+        if (_isPaused || _isQuizOpen)
+            return;
+        ShowQuiz();
+    }
+
+    /// <summary>
+    /// Returns the time remaining until the next quiz, or null if paused or the timer is not running.
+    /// </summary>
+    public TimeSpan? GetTimeUntilNextQuiz()
+    {
+        if (_isPaused || !_nextQuizTimer.Enabled)
+            return null;
+        var elapsed = DateTime.UtcNow - _timerStartedAt;
+        var remaining = TimeSpan.FromMilliseconds(_nextQuizTimer.Interval) - elapsed;
+        return remaining < TimeSpan.Zero ? TimeSpan.Zero : remaining;
     }
 
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
@@ -155,6 +189,7 @@ public class ApplicationService : IDisposable
             return;
         }
 
+        _isQuizOpen = true;
         QuizRequested?.Invoke(this, session);
     }
 
