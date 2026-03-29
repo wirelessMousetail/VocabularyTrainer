@@ -30,29 +30,27 @@ VocabularyTrainer is a cross-platform desktop application built on .NET 8.0. The
 ### Core Components
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                 ApplicationService                  │
-│          (Application Orchestrator)                 │
-└──────────────┬──────────────────────────────────────┘
-               │
-       ┌───────┴──────────────┐
-       │                      │
-┌──────▼───────┐  ┌───────────▼───────┐
-│  UI Layer    │  │   Service Layer   │
-│              │  │                   │
-│ - QuizView   │  │ - QuizService     │
-│ - OptionsView│  │ - Settings        │
-└──────────────┘  │ - WordList        │
-                  └───────────┬───────┘
-                              │
-              ┌───────────────┴───────────┐
-              │                           │
-       ┌──────▼────────┐  ┌──────────────▼──────────┐
-       │  Model Layer  │  │  Infrastructure Layer    │
-       │               │  │                          │
-       │ - Domain      │  │ - TrayIconService        │
-       │ - Data        │  └──────────────────────────┘
-       └───────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       App.axaml.cs                           │
+│                  (Entry Point / Wiring Hub)                  │
+└──────┬────────────────────────┬──────────────────┬───────────┘
+       │                        │                  │
+┌──────▼───────┐   ┌────────────▼───────┐   ┌──────▼───────────────┐
+│   UI Layer   │   │   Service Layer    │   │  Infrastructure Layer │
+│              │   │                   │   │                       │
+│ - QuizView   │   │ - AppService       │   │ - TrayIconService     │
+│ - OptionsView│   │ - QuizService      │   └───────────────────────┘
+└──────────────┘   │ - WordList         │           │
+        │          │ - Settings         │           │
+        └─────────►│ - WordWeight...    │◄──────────┘
+                   └────────┬───────────┘
+                            │
+                   ┌────────▼───────────┐
+                   │    Model Layer     │
+                   │                   │
+                   │ - Domain models   │
+                   │ - Configuration   │
+                   └───────────────────┘
 ```
 
 ---
@@ -209,42 +207,47 @@ Business logic and orchestration:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    ApplicationService                       │
-│                                                             │
-│  ┌──────────────┐   ┌──────────────┐  ┌─────────────────┐   │
-│  │   Timer      │   │TrayIconSvc   │  │ SettingsService │   │
-│  └──────┬───────┘   └──────┬───────┘  └────────┬────────┘   │
-│         │                  │                   │            │
-│         │ (on tick)        │ (on action)       │ (get)      │
-│         ▼                  ▼                   ▼            │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              ShowQuiz() / OpenOptions()              │   │
-│  └──────────────┬───────────────────────────────────────┘   │
-└─────────────────┼───────────────────────────────────────────┘
-                  │ (events → App.axaml.cs → Dispatcher)
-         ┌────────┴────────┐
-         │                 │
-    ┌────▼────┐      ┌─────▼──────┐
-    │QuizView │      │OptionsView │
-    └────┬────┘      └─────┬──────┘
-         │                 │
-         │                 │ (updates)
-         │                 ▼
-    ┌────▼───────────────────────────┐
-    │       QuizSession              │
-    │  ┌────────────────────────┐    │
-    │  │  Quiz (data)           │    │
-    │  │  QuizPresenter (logic) │────┼──► WordWeightStrategy
-    │  │  QuizConfiguration     │    │
-    │  └────────────────────────┘    │
-    └───────┬────────────────────────┘
-            │
-            │ (on answer)
-            ▼
-    ┌──────────────────┐
-    │ WordListService  │
-    │   (saves)        │
-    └──────────────────┘
+│                       App.axaml.cs                          │
+│                  (Entry Point / Wiring)                     │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │ creates                      │ creates
+               ▼                             ▼
+┌──────────────────────────┐     ┌────────────────────────┐
+│    ApplicationService    │◄────│    TrayIconService     │
+│                          │     │  (pause/resume/        │
+│  ┌──────────────────┐    │     │   options/exit)        │
+│  │  Timer (on tick) │    │     └────────────────────────┘
+│  └────────┬─────────┘    │
+│           │              │
+│           ▼              │
+│      ShowQuiz()          │
+└──────────────┬───────────┘
+               │ (events → Dispatcher)
+        ┌──────┴───────┐
+        │              │
+   ┌────▼────┐    ┌─────▼──────┐
+   │QuizView │    │OptionsView │
+   └────┬────┘    └─────┬──────┘
+        │               │ (save/load)
+        │               ▼
+        │      ┌─────────────────┐
+        │      │ SettingsService │
+        │      └─────────────────┘
+        ▼
+┌───────────────────────────────────┐
+│           QuizSession             │
+│  ┌─────────────────────────────┐  │
+│  │  Quiz (data)                │  │
+│  │  QuizPresenter (logic)   ───┼──┼──► WordWeightStrategy
+│  │  QuizConfiguration          │  │
+│  └─────────────────────────────┘  │
+└──────────────┬────────────────────┘
+               │ (on answer)
+               ▼
+      ┌─────────────────┐
+      │ WordListService │
+      │   (saves)       │
+      └─────────────────┘
 ```
 
 ### Service Dependencies
