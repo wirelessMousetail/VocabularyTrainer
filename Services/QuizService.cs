@@ -11,17 +11,25 @@ public class QuizService
 {
     private readonly List<WordEntry> _words;
     private readonly WordWeightStrategy _weightStrategy;
+    private IDistractorSelector _selector;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QuizService"/> class.
     /// </summary>
     /// <param name="words">The list of vocabulary words to use for quizzes.</param>
     /// <param name="weightStrategy">The strategy for calculating word weights and selection probability.</param>
-    public QuizService(List<WordEntry> words, WordWeightStrategy weightStrategy)
+    /// <param name="selector">The distractor selection strategy.</param>
+    public QuizService(List<WordEntry> words, WordWeightStrategy weightStrategy, IDistractorSelector selector)
     {
         _words = words;
         _weightStrategy = weightStrategy;
+        _selector = selector;
     }
+
+    /// <summary>
+    /// Updates the distractor selector when the difficulty setting changes.
+    /// </summary>
+    public void SetSelector(IDistractorSelector selector) => _selector = selector;
 
     /// <summary>
     /// Creates a new quiz session with selected word, options, and presenter logic.
@@ -35,7 +43,7 @@ public class QuizService
         if (_words.Count == 0)
             return null;
 
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, configuration.Difficulty, SelectWordByWeight());
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, SelectWordByWeight());
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
@@ -45,7 +53,7 @@ public class QuizService
     /// </summary>
     internal QuizSession CreateQuizSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
     {
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, configuration.Difficulty, word);
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, word);
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
@@ -57,9 +65,8 @@ public class QuizService
     /// <param name="optionCount">Number of multiple-choice options.</param>
     /// <param name="direction">Quiz direction (Direct, Reverse, or Random).</param>
     /// <returns>A configured <see cref="Quiz"/> instance.</returns>
-    private Quiz CreateQuiz(int optionCount, QuizDirection direction, QuizDifficulty difficulty, WordEntry correct)
+    private Quiz CreateQuiz(int optionCount, QuizDirection direction, WordEntry correct)
     {
-
         // Determine actual direction for this quiz
         bool isReversed = direction switch
         {
@@ -69,51 +76,21 @@ public class QuizService
             _ => false
         };
 
-        IEnumerable<WordEntry> pool = GetOptionPool(correct, optionCount, isReversed);
+        var pool = GetOptionPool(correct, optionCount, isReversed).ToList();
 
-        var poolList = pool.ToList();
+        var selected = _selector.Select(pool, correct, optionCount - 1);
 
-        var correctTarget = (isReversed ? correct.Question : correct.Answer);
-
-        var candidates = poolList
+        var options = selected
             .Select(w => isReversed ? w.Question : w.Answer)
             .Distinct()
             .ToList();
 
-        List<string> options;
-        if (difficulty == QuizDifficulty.Hard)
-        {
-            int k = Math.Min(candidates.Count, 2 * (optionCount - 1));
-            var topK = candidates
-                .OrderBy(opt => StringDistance.Levenshtein(
-                    opt.ToLowerInvariant(), correctTarget.ToLowerInvariant()))
-                .Take(k)
-                .ToList();
-            options = topK
-                .OrderBy(_ => Random.Shared.Next())
-                .Take(optionCount - 1)
-                .ToList();
-        }
-        else
-        {
-            options = candidates
-                .OrderBy(_ => Random.Shared.Next())
-                .Take(optionCount - 1)
-                .ToList();
-        }
-
         options.Add(isReversed ? correct.Question : correct.Answer);
-
-        options = options
-            .OrderBy(_ => Random.Shared.Next())
-            .ToList();
+        options = options.OrderBy(_ => Random.Shared.Next()).ToList();
 
         var optionEntries = new Dictionary<string, WordEntry>();
-        foreach (var w in poolList)
-        {
-            var key = isReversed ? w.Question : w.Answer;
-            optionEntries.TryAdd(key, w);
-        }
+        foreach (var w in selected)
+            optionEntries.TryAdd(isReversed ? w.Question : w.Answer, w);
 
         return new Quiz(
             isReversed ? correct.Answer : correct.Question,

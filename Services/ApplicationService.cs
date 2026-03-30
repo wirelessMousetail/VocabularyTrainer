@@ -68,11 +68,12 @@ public class ApplicationService : IDisposable
         _wordListService = new WordListService(precompiledPath, managedPath);
         var words = _wordListService.LoadAndMerge();
 
+        var settings = _settingsService.GetSettings();
         var weightStrategy = new WordWeightStrategy();
-        _quizService = new QuizService(words, weightStrategy);
+        _quizService = new QuizService(words, weightStrategy, settings.QuizConfiguration.Difficulty.CreateSelector());
 
         _nextQuizTimer = new System.Timers.Timer();
-        _nextQuizTimer.Interval = _settingsService.GetSettings().QuizIntervalSeconds * 1000;
+        _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
         _nextQuizTimer.Elapsed += OnTimerElapsed;
         _nextQuizTimer.AutoReset = false; // Manual restart after quiz closes
     }
@@ -122,6 +123,7 @@ public class ApplicationService : IDisposable
     {
         var settings = _settingsService.GetSettings();
         _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
+        _quizService.SetSelector(settings.QuizConfiguration.Difficulty.CreateSelector());
 
         if (!_isPaused)
         {

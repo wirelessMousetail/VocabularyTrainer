@@ -8,8 +8,8 @@ namespace VocabularyTrainer.Tests.Services;
 
 public class QuizServiceTests
 {
-    private static QuizService Build(IEnumerable<WordEntry> words) =>
-        new(words.ToList(), new WordWeightStrategy());
+    private static QuizService Build(IEnumerable<WordEntry> words, IDistractorSelector? selector = null) =>
+        new(words.ToList(), new WordWeightStrategy(), selector ?? new EasyDistractorSelector());
 
     private static QuizConfiguration Config(int options = 3, QuizDirection dir = QuizDirection.Direct) =>
         new() { OptionCount = options, Direction = dir };
@@ -170,34 +170,30 @@ public class QuizServiceTests
     // ── Hard difficulty ───────────────────────────────────────────────────────
 
     [Fact]
-    public void HardDifficulty_PrefersSimilarDistractors()
+    public void HardDifficulty_PrefersSimilarDutchDistractors()
     {
-        // "dog" is correct; "log", "fog", "hog", "bog" are close (distance 1)
-        // "elephant" and "rhinoceros" are far — with k = 2*(3-1) = 4, only the top-4
-        // closest are eligible, so both far words are always excluded
-        var correct      = WordEntryFixture.Make("hond",         "dog",        WordGroup.Other);
-        var similar1     = WordEntryFixture.Make("houtblok",     "log",        WordGroup.Other);
-        var similar2     = WordEntryFixture.Make("nevel",        "fog",        WordGroup.Other);
-        var similar3     = WordEntryFixture.Make("varken",       "hog",        WordGroup.Other);
-        var similar4     = WordEntryFixture.Make("moeras",       "bog",        WordGroup.Other);
-        var dissimilar1  = WordEntryFixture.Make("olifant",      "elephant",   WordGroup.Other);
-        var dissimilar2  = WordEntryFixture.Make("neushoorn",    "rhinoceros",  WordGroup.Other);
+        // Distance is measured on the Dutch (Question) side.
+        // "hond" correct; "bond","fond","pond","rond" are all Dutch distance 1.
+        // "bibliotheek" (d≈8) and "vliegtuig" (d≈7) are always outside the
+        // top-K=4 eligible pool, so their English answers must never appear.
+        var correct     = WordEntryFixture.Make("hond",        "dog",      WordGroup.Other);
+        var similar1    = WordEntryFixture.Make("bond",        "bond",     WordGroup.Other);
+        var similar2    = WordEntryFixture.Make("fond",        "fond",     WordGroup.Other);
+        var similar3    = WordEntryFixture.Make("pond",        "pound",    WordGroup.Other);
+        var similar4    = WordEntryFixture.Make("rond",        "round",    WordGroup.Other);
+        var dissimilar1 = WordEntryFixture.Make("bibliotheek", "library",  WordGroup.Other);
+        var dissimilar2 = WordEntryFixture.Make("vliegtuig",   "airplane", WordGroup.Other);
 
         var words = new List<WordEntry> { correct, similar1, similar2, similar3, similar4, dissimilar1, dissimilar2 };
-        var service = Build(words);
-        var config = new QuizConfiguration
-        {
-            OptionCount = 3,
-            Direction = QuizDirection.Direct,
-            Difficulty = QuizDifficulty.Hard
-        };
+        var service = Build(words, new HardDistractorSelector());
+        var config = new QuizConfiguration { OptionCount = 3, Direction = QuizDirection.Direct };
 
-        // Run multiple times to account for randomness in top-K selection
+        // Run multiple times to account for randomness within the top-K pool
         for (int i = 0; i < 20; i++)
         {
             var session = service.CreateQuizSessionForWord(correct, config, null!);
-            session.Quiz.Options.Should().NotContain("elephant");
-            session.Quiz.Options.Should().NotContain("rhinoceros");
+            session.Quiz.Options.Should().NotContain("library");
+            session.Quiz.Options.Should().NotContain("airplane");
         }
     }
 
