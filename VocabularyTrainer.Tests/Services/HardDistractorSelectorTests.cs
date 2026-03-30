@@ -73,6 +73,28 @@ public class HardDistractorSelectorTests
     }
 
     [Fact]
+    public void Select_FallsBackToRandom_WhenNoSimilarWordExists()
+    {
+        // "enzovoort" has no visually similar neighbours in this pool —
+        // all normalized distances exceed the 0.5 threshold.
+        WordEntry correct = Word("enzovoort", "etcetera");
+        var candidates = new[]
+        {
+            Word("ongeveer",  "approximately"),  // normalized distance > 0.5
+            Word("bijzonder", "special"),        // normalized distance > 0.5
+            Word("misschien", "maybe"),          // normalized distance > 0.5
+        };
+
+        // Run many times; if the selector always returned the same word the result
+        // set would have size 1, which can't happen with true random selection.
+        var results = Enumerable.Range(0, 50)
+            .Select(_ => Selector.Select(candidates, correct, 1).Single().Answer)
+            .ToHashSet();
+
+        results.Should().HaveCountGreaterThan(1, because: "fallback must be random, not always the same word");
+    }
+
+    [Fact]
     public void Select_PrefersCloserWords_OverFarWords()
     {
         // Only two candidates: one very close (d=1), one very far (d=8).

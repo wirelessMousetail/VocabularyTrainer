@@ -26,4 +26,11 @@ public static class StringDistance
         }
         return prev[b.Length];
     }
+
+    public static double NormalizedLevenshtein(string a, string b)
+    {
+        int maxLen = Math.Max(a.Length, b.Length);
+        if (maxLen == 0) return 0.0;
+        return (double)Levenshtein(a, b) / maxLen;
+    }
 }
