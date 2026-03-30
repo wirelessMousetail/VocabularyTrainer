@@ -167,6 +167,40 @@ public class QuizServiceTests
         session.Quiz.Options.Should().HaveCount(2);
     }
 
+    // ── Hard difficulty ───────────────────────────────────────────────────────
+
+    [Fact]
+    public void HardDifficulty_PrefersSimilarDistractors()
+    {
+        // "dog" is correct; "log", "fog", "hog", "bog" are close (distance 1)
+        // "elephant" and "rhinoceros" are far — with k = 2*(3-1) = 4, only the top-4
+        // closest are eligible, so both far words are always excluded
+        var correct      = WordEntryFixture.Make("hond",         "dog",        WordGroup.Other);
+        var similar1     = WordEntryFixture.Make("houtblok",     "log",        WordGroup.Other);
+        var similar2     = WordEntryFixture.Make("nevel",        "fog",        WordGroup.Other);
+        var similar3     = WordEntryFixture.Make("varken",       "hog",        WordGroup.Other);
+        var similar4     = WordEntryFixture.Make("moeras",       "bog",        WordGroup.Other);
+        var dissimilar1  = WordEntryFixture.Make("olifant",      "elephant",   WordGroup.Other);
+        var dissimilar2  = WordEntryFixture.Make("neushoorn",    "rhinoceros",  WordGroup.Other);
+
+        var words = new List<WordEntry> { correct, similar1, similar2, similar3, similar4, dissimilar1, dissimilar2 };
+        var service = Build(words);
+        var config = new QuizConfiguration
+        {
+            OptionCount = 3,
+            Direction = QuizDirection.Direct,
+            Difficulty = QuizDifficulty.Hard
+        };
+
+        // Run multiple times to account for randomness in top-K selection
+        for (int i = 0; i < 20; i++)
+        {
+            var session = service.CreateQuizSessionForWord(correct, config, null!);
+            session.Quiz.Options.Should().NotContain("elephant");
+            session.Quiz.Options.Should().NotContain("rhinoceros");
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static WordEntry[] FiveDistinctWords() =>

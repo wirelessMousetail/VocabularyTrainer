@@ -35,7 +35,7 @@ public class QuizService
         if (_words.Count == 0)
             return null;
 
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, SelectWordByWeight());
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, configuration.Difficulty, SelectWordByWeight());
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
@@ -45,7 +45,7 @@ public class QuizService
     /// </summary>
     internal QuizSession CreateQuizSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
     {
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, word);
+        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, configuration.Difficulty, word);
         var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
         return new QuizSession(quiz, presenter, configuration);
     }
@@ -57,7 +57,7 @@ public class QuizService
     /// <param name="optionCount">Number of multiple-choice options.</param>
     /// <param name="direction">Quiz direction (Direct, Reverse, or Random).</param>
     /// <returns>A configured <see cref="Quiz"/> instance.</returns>
-    private Quiz CreateQuiz(int optionCount, QuizDirection direction, WordEntry correct)
+    private Quiz CreateQuiz(int optionCount, QuizDirection direction, QuizDifficulty difficulty, WordEntry correct)
     {
 
         // Determine actual direction for this quiz
@@ -73,12 +73,34 @@ public class QuizService
 
         var poolList = pool.ToList();
 
-        var options = poolList
+        var correctTarget = (isReversed ? correct.Question : correct.Answer);
+
+        var candidates = poolList
             .Select(w => isReversed ? w.Question : w.Answer)
             .Distinct()
-            .OrderBy(_ => Random.Shared.Next())
-            .Take(optionCount - 1)
             .ToList();
+
+        List<string> options;
+        if (difficulty == QuizDifficulty.Hard)
+        {
+            int k = Math.Min(candidates.Count, 2 * (optionCount - 1));
+            var topK = candidates
+                .OrderBy(opt => StringDistance.Levenshtein(
+                    opt.ToLowerInvariant(), correctTarget.ToLowerInvariant()))
+                .Take(k)
+                .ToList();
+            options = topK
+                .OrderBy(_ => Random.Shared.Next())
+                .Take(optionCount - 1)
+                .ToList();
+        }
+        else
+        {
+            options = candidates
+                .OrderBy(_ => Random.Shared.Next())
+                .Take(optionCount - 1)
+                .ToList();
+        }
 
         options.Add(isReversed ? correct.Question : correct.Answer);
 

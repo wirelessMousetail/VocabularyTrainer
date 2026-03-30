@@ -19,6 +19,8 @@ public class OptionsViewModel : ViewModelBase
     private bool _isDirectMode;
     private bool _isReverseMode;
     private bool _isRandomMode;
+    private bool _isEasyMode;
+    private bool _isHardMode;
 
     /// <summary>
     /// Gets or sets the quiz interval in seconds.
@@ -75,6 +77,24 @@ public class OptionsViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether Easy difficulty is selected.
+    /// </summary>
+    public bool IsEasyMode
+    {
+        get => _isEasyMode;
+        set => SetProperty(ref _isEasyMode, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Hard difficulty is selected.
+    /// </summary>
+    public bool IsHardMode
+    {
+        get => _isHardMode;
+        set => SetProperty(ref _isHardMode, value);
+    }
+
+    /// <summary>
     /// Command to save settings and close the window.
     /// </summary>
     public RelayCommand SaveCommand { get; }
@@ -121,6 +141,9 @@ public class OptionsViewModel : ViewModelBase
                 IsRandomMode = true;
                 break;
         }
+
+        IsEasyMode = settings.QuizConfiguration.Difficulty == QuizDifficulty.Easy;
+        IsHardMode = settings.QuizConfiguration.Difficulty == QuizDifficulty.Hard;
     }
 
     private QuizDirection GetSelectedDirection()
@@ -132,13 +155,17 @@ public class OptionsViewModel : ViewModelBase
         return QuizDirection.Random;
     }
 
+    private QuizDifficulty GetSelectedDifficulty() =>
+        IsHardMode ? QuizDifficulty.Hard : QuizDifficulty.Easy;
+
     private void SaveAndClose()
     {
         _settingsService.UpdateSettings(
             QuizIntervalSeconds,
             AutoCloseSeconds,
             OptionCount,
-            GetSelectedDirection()
+            GetSelectedDirection(),
+            GetSelectedDifficulty()
         );
 
         _onSettingsApplied();

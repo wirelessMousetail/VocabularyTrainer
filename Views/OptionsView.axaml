@@ -4,7 +4,7 @@
         x:Class="VocabularyTrainer.Views.OptionsView"
         x:DataType="vm:OptionsViewModel"
         Title="Options"
-        Width="450" Height="480"
+        Width="450" Height="580"
         MinWidth="400" MinHeight="450"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
@@ -74,6 +74,22 @@
                     <RadioButton Content="Random"
                                  IsChecked="{Binding IsRandomMode}"
                                  GroupName="Direction"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Difficulty -->
+            <TextBlock Text="Difficulty:" Classes="label" Margin="0,20,0,8"/>
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="12">
+                <StackPanel>
+                    <RadioButton Content="Easy — random distractors"
+                                 IsChecked="{Binding IsEasyMode}"
+                                 GroupName="Difficulty"/>
+                    <RadioButton Content="Hard — similar-looking distractors"
+                                 IsChecked="{Binding IsHardMode}"
+                                 GroupName="Difficulty"/>
                 </StackPanel>
             </Border>
 
