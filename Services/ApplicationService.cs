@@ -186,6 +186,8 @@ public class ApplicationService : IDisposable
 
     private void ShowQuiz()
     {
+        _nextQuizTimer.Stop();
+
         var settings = _settingsService.GetSettings();
         var session = _quizService.CreateQuizSession(settings.QuizConfiguration, _wordListService);
 
