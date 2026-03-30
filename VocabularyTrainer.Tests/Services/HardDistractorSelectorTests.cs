@@ -44,10 +44,9 @@ public class HardDistractorSelectorTests
     [Fact]
     public void Select_NeverPicksDissimilarWords_WhenSimilarPoolIsLargeEnough()
     {
-        // Distance on Dutch (Question) field:
-        //   bond/fond/pond/rond → distance 1 from "hond"
-        //   bibliotheek         → distance ≈ 8
-        //   vliegtuig           → distance ≈ 7
+        // Jaro-Winkler on Dutch (Question) field:
+        //   bond/fond/pond/rond → JW ≈ 0.833 from "hond" (above 0.7 threshold)
+        //   bibliotheek/vliegtuig → JW < 0.6 (below threshold, outside top-K)
         // K = 2 × 2 = 4 similar candidates — dissimilar ones fall outside K.
         WordEntry correct  = Word("hond",        "dog");
         var similar = new[]
@@ -76,13 +75,13 @@ public class HardDistractorSelectorTests
     public void Select_FallsBackToRandom_WhenNoSimilarWordExists()
     {
         // "enzovoort" has no visually similar neighbours in this pool —
-        // all normalized distances exceed the 0.5 threshold.
+        // all Jaro-Winkler scores fall below the 0.7 threshold.
         WordEntry correct = Word("enzovoort", "etcetera");
         var candidates = new[]
         {
-            Word("ongeveer",  "approximately"),  // normalized distance > 0.5
-            Word("bijzonder", "special"),        // normalized distance > 0.5
-            Word("misschien", "maybe"),          // normalized distance > 0.5
+            Word("ongeveer",  "approximately"),  // JW < 0.7
+            Word("bijzonder", "special"),        // JW < 0.7
+            Word("misschien", "maybe"),          // JW < 0.7
         };
 
         // Run many times; if the selector always returned the same word the result
@@ -97,15 +96,14 @@ public class HardDistractorSelectorTests
     [Fact]
     public void Select_PrefersCloserWords_OverFarWords()
     {
-        // Only two candidates: one very close (d=1), one very far (d=8).
-        // K = 2 × 1 = 2 — both are eligible but ordered by distance.
-        // We pick count=1, so after taking top-K=2 and randomly selecting 1,
-        // over many runs the close word must appear at least once.
+        // Two candidates: bond (JW ≈ 0.833, above threshold) and bibliotheek (JW < 0.6).
+        // Best similarity 0.833 > 0.7 → no fallback. K = 2 × 1 = 2 → both in pool.
+        // Pick count=1 randomly; "bond" must appear at least once across many runs.
         WordEntry correct = Word("hond", "dog");
         var candidates = new[]
         {
-            Word("bond",        "bond"),     // distance 1
-            Word("bibliotheek", "library"),  // distance ≈ 8
+            Word("bond",        "bond"),     // JW ≈ 0.833
+            Word("bibliotheek", "library"),  // JW < 0.6
         };
 
         var results = Enumerable.Range(0, 30)
