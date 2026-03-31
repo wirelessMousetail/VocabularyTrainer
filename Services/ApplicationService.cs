@@ -1,5 +1,4 @@
 using System;
-using System.Timers;
 using VocabularyTrainer.Models;
 
 namespace VocabularyTrainer.Services;
@@ -13,7 +12,7 @@ public class ApplicationService : IDisposable
     private readonly QuizService _quizService;
     private readonly WordListService _wordListService;
     private readonly SettingsService _settingsService;
-    private readonly System.Timers.Timer _nextQuizTimer;
+    private readonly ITimer _nextQuizTimer;
     private bool _isPaused;
     private bool _isQuizOpen;
     private DateTime _timerStartedAt;
@@ -72,10 +71,28 @@ public class ApplicationService : IDisposable
         var weightStrategy = new WordWeightStrategy();
         _quizService = new QuizService(words, weightStrategy, settings.QuizConfiguration.Difficulty.CreateSelector());
 
-        _nextQuizTimer = new System.Timers.Timer();
+        _nextQuizTimer = new SystemTimer();
         _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
         _nextQuizTimer.Elapsed += OnTimerElapsed;
         _nextQuizTimer.AutoReset = false; // Manual restart after quiz closes
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplicationService"/> class with pre-built collaborators.
+    /// Intended for use in tests.
+    /// </summary>
+    internal ApplicationService(
+        SettingsService settingsService,
+        WordListService wordListService,
+        QuizService quizService,
+        ITimer timer)
+    {
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _wordListService = wordListService ?? throw new ArgumentNullException(nameof(wordListService));
+        _quizService = quizService ?? throw new ArgumentNullException(nameof(quizService));
+        _nextQuizTimer = timer ?? throw new ArgumentNullException(nameof(timer));
+        _nextQuizTimer.Elapsed += OnTimerElapsed;
+        _nextQuizTimer.AutoReset = false;
     }
 
     /// <summary>
@@ -183,7 +200,7 @@ public class ApplicationService : IDisposable
         return remaining < TimeSpan.Zero ? TimeSpan.Zero : remaining;
     }
 
-    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    private void OnTimerElapsed(object? sender, EventArgs e)
     {
         if (_isPaused || _isQuizOpen)
             return;

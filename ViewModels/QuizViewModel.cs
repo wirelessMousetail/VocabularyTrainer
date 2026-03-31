@@ -1,10 +1,8 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Timers;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
+using Timer = System.Timers.Timer;
 
 namespace VocabularyTrainer.ViewModels;
 
@@ -20,7 +18,7 @@ public class QuizViewModel : ViewModelBase
 
     private readonly QuizSession _session;
     private readonly Action _onQuizCompleted;
-    private System.Timers.Timer? _autoCloseTimer;
+    private Timer? _autoCloseTimer;
 
     private string _question = string.Empty;
     private string _resultMessage = string.Empty;
@@ -135,7 +133,7 @@ public class QuizViewModel : ViewModelBase
             return;
 
         var interval = _session.Configuration.AutoCloseAfterCorrectSeconds * 1000;
-        _autoCloseTimer = new System.Timers.Timer(interval);
+        _autoCloseTimer = new Timer(interval);
         _autoCloseTimer.Elapsed += (_, _) =>
         {
             _autoCloseTimer.Stop();

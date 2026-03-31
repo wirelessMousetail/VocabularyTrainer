@@ -129,8 +129,12 @@ public partial class App : Application
             OptionsView? window = null;
 
             var viewModel = new OptionsViewModel(
-                settingsService,
-                () => appService.ApplySettings(),
+                settingsService.GetSettings(),
+                (interval, autoClose, count, dir, diff) =>
+                {
+                    settingsService.UpdateSettings(interval, autoClose, count, dir, diff);
+                    appService.ApplySettings();
+                },
                 () => window?.Close()
             );
 

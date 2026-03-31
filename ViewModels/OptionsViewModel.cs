@@ -1,6 +1,5 @@
 using System;
 using VocabularyTrainer.Models;
-using VocabularyTrainer.Services;
 
 namespace VocabularyTrainer.ViewModels;
 
@@ -9,8 +8,7 @@ namespace VocabularyTrainer.ViewModels;
 /// </summary>
 public class OptionsViewModel : ViewModelBase
 {
-    private readonly SettingsService _settingsService;
-    private readonly Action _onSettingsApplied;
+    private readonly Action<int, int, int, QuizDirection, QuizDifficulty> _onSave;
     private readonly Action _onClosed;
 
     private int _quizIntervalSeconds;
@@ -107,24 +105,22 @@ public class OptionsViewModel : ViewModelBase
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsViewModel"/> class.
     /// </summary>
-    /// <param name="settingsService">The settings service.</param>
-    /// <param name="onSettingsApplied">Callback when settings are saved.</param>
+    /// <param name="initialSettings">The current settings to populate the form.</param>
+    /// <param name="onSave">Callback invoked with the new settings values when saving.</param>
     /// <param name="onClosed">Callback when the window is closed.</param>
-    public OptionsViewModel(SettingsService settingsService, Action onSettingsApplied, Action onClosed)
+    public OptionsViewModel(AppSettings initialSettings, Action<int, int, int, QuizDirection, QuizDifficulty> onSave, Action onClosed)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _onSettingsApplied = onSettingsApplied ?? throw new ArgumentNullException(nameof(onSettingsApplied));
+        _onSave = onSave ?? throw new ArgumentNullException(nameof(onSave));
         _onClosed = onClosed ?? throw new ArgumentNullException(nameof(onClosed));
 
-        LoadFromSettings();
+        LoadFromSettings(initialSettings ?? throw new ArgumentNullException(nameof(initialSettings)));
 
         SaveCommand = new RelayCommand(SaveAndClose);
         CancelCommand = new RelayCommand(_onClosed);
     }
 
-    private void LoadFromSettings()
+    private void LoadFromSettings(AppSettings settings)
     {
-        var settings = _settingsService.GetSettings();
         QuizIntervalSeconds = settings.QuizIntervalSeconds;
         AutoCloseSeconds = settings.QuizConfiguration.AutoCloseAfterCorrectSeconds;
         OptionCount = settings.QuizConfiguration.OptionCount;
@@ -160,15 +156,7 @@ public class OptionsViewModel : ViewModelBase
 
     private void SaveAndClose()
     {
-        _settingsService.UpdateSettings(
-            QuizIntervalSeconds,
-            AutoCloseSeconds,
-            OptionCount,
-            GetSelectedDirection(),
-            GetSelectedDifficulty()
-        );
-
-        _onSettingsApplied();
+        _onSave(QuizIntervalSeconds, AutoCloseSeconds, OptionCount, GetSelectedDirection(), GetSelectedDifficulty());
         _onClosed();
     }
 }
