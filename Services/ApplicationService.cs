@@ -122,15 +122,20 @@ public class ApplicationService : IDisposable
     public void ApplySettings()
     {
         var settings = _settingsService.GetSettings();
-        _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
         _quizService.SetSelector(settings.QuizConfiguration.Difficulty.CreateSelector());
 
-        if (!_isPaused)
+        if (!_isPaused && !_isQuizOpen)
         {
             _nextQuizTimer.Stop();
+            _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
             _timerStartedAt = DateTime.UtcNow;
             _nextQuizTimer.Start();
             TimerRestarted?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            // Store the new interval so OnQuizCompleted/Resume pick it up correctly
+            _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
         }
     }
 
@@ -180,7 +185,7 @@ public class ApplicationService : IDisposable
 
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (_isPaused)
+        if (_isPaused || _isQuizOpen)
             return;
 
         ShowQuiz();

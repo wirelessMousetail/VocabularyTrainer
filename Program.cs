@@ -31,7 +31,7 @@ static class Program
 //  + Add contributions.md file
 //  + Review ARCHITECTURE.md and validate that it matches current implementation
 //  + Improve ARCHITECTURE.md: Make sure that infrastructure layer is on the diagram
-//  * Выбирать в варианты "похожие" слова - нужно определять "расстояние" между словами
+//  + Выбирать в варианты "похожие" слова - нужно определять "расстояние" между словами
 //  ** Возможность просить напечатать ответ (требуется нормализация списка)
 
 
