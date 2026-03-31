@@ -90,3 +90,5 @@ On startup `WordListService.LoadAndMerge()` merges the two CSVs: new words from 
 **Test coverage:** All business logic must be covered by unit tests. Every service method with non-trivial logic (weight calculation, word selection, CSV parsing, merge behaviour, answer evaluation) needs a corresponding test. When fixing a bug, add a regression test that fails before the fix and passes after.
 
 **Layer separation:** Keep UI, business logic, and data access strictly separated. ViewModels must not reference services directly — they receive data and callbacks via constructor parameters. Services must not reference ViewModels or Avalonia types. `App.axaml.cs` is the only place that wires layers together.
+
+**Single Responsibility Principle:** Each class should have one reason to change. Prefer splitting a class when it starts owning multiple distinct concerns (e.g. data loading AND transformation AND persistence). Deviation is acceptable only when the split would produce trivially thin classes or when tight coupling between concerns makes separation artificial.
