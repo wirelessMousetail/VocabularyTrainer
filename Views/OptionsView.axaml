@@ -4,7 +4,7 @@
         x:Class="VocabularyTrainer.Views.OptionsView"
         x:DataType="vm:OptionsViewModel"
         Title="Options"
-        Width="450" Height="680"
+        Width="450" Height="730"
         MinWidth="400" MinHeight="600"
         CanResize="True"
         WindowStartupLocation="CenterScreen"
@@ -105,6 +105,12 @@
                         <RadioButton Content="Hard — similar-looking distractors"
                                      IsChecked="{Binding IsHardMode}"
                                      GroupName="Difficulty"/>
+                        <RadioButton Content="Typing — type the answer"
+                                     IsChecked="{Binding IsTypingMode}"
+                                     GroupName="Difficulty"/>
+                        <CheckBox Content="Reveal letters on wrong answers"
+                                  IsChecked="{Binding IsTypingRevealLetters}"
+                                  Margin="24,4,0,0"/>
                     </StackPanel>
                 </Border>
             </StackPanel>

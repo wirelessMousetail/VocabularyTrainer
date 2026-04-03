@@ -1,0 +1,70 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VocabularyTrainer.ViewModels"
+        x:Class="VocabularyTrainer.Views.TypingQuizView"
+        x:DataType="vm:TypingQuizViewModel"
+        Title="VocabularyTrainer Quiz"
+        Width="450" Height="400"
+        MinWidth="350" MinHeight="300"
+        CanResize="True"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Resources/tray.ico"
+        PointerPressed="Window_PointerPressed">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.question">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+
+        <Style Selector="TextBlock.result">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,20,0,0"/>
+        </Style>
+
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <StackPanel Margin="24" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Question}"
+                       Classes="question"/>
+
+            <TextBox Text="{Binding TextInput}"
+                     Watermark="Type your answer…"
+                     HorizontalAlignment="Stretch"
+                     Margin="0,0,0,8"
+                     IsEnabled="{Binding !IsQuizCompleted}">
+                <TextBox.KeyBindings>
+                    <KeyBinding Gesture="Return" Command="{Binding SubmitCommand}"/>
+                </TextBox.KeyBindings>
+            </TextBox>
+
+            <Button Content="Check"
+                    Command="{Binding SubmitCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Padding="12,8"/>
+
+            <TextBlock Text="{Binding HintText}"
+                       Classes="hint"
+                       IsVisible="{Binding HintText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <TextBlock Text="{Binding ResultMessage}"
+                       Foreground="{Binding ResultColor}"
+                       Classes="result"
+                       IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+    </Panel>
+</Window>

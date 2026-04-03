@@ -8,7 +8,7 @@ namespace VocabularyTrainer.ViewModels;
 /// </summary>
 public class OptionsViewModel : ViewModelBase
 {
-    private readonly Action<int, int, int, QuizDirection, QuizDifficulty> _onSave;
+    private readonly Action<int, int, int, QuizDirection, QuizDifficulty, bool> _onSave;
     private readonly Action _onClosed;
 
     private int _quizIntervalSeconds;
@@ -19,6 +19,8 @@ public class OptionsViewModel : ViewModelBase
     private bool _isRandomMode;
     private bool _isEasyMode;
     private bool _isHardMode;
+    private bool _isTypingMode;
+    private bool _isTypingRevealLetters;
 
     /// <summary>
     /// Gets or sets the quiz interval in seconds.
@@ -93,6 +95,24 @@ public class OptionsViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether Typing difficulty is selected.
+    /// </summary>
+    public bool IsTypingMode
+    {
+        get => _isTypingMode;
+        set => SetProperty(ref _isTypingMode, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether letters should be revealed on wrong attempts in Typing mode.
+    /// </summary>
+    public bool IsTypingRevealLetters
+    {
+        get => _isTypingRevealLetters;
+        set => SetProperty(ref _isTypingRevealLetters, value);
+    }
+
+    /// <summary>
     /// Command to save settings and close the window.
     /// </summary>
     public RelayCommand SaveCommand { get; }
@@ -108,7 +128,7 @@ public class OptionsViewModel : ViewModelBase
     /// <param name="initialSettings">The current settings to populate the form.</param>
     /// <param name="onSave">Callback invoked with the new settings values when saving.</param>
     /// <param name="onClosed">Callback when the window is closed.</param>
-    public OptionsViewModel(AppSettings initialSettings, Action<int, int, int, QuizDirection, QuizDifficulty> onSave, Action onClosed)
+    public OptionsViewModel(AppSettings initialSettings, Action<int, int, int, QuizDirection, QuizDifficulty, bool> onSave, Action onClosed)
     {
         _onSave = onSave ?? throw new ArgumentNullException(nameof(onSave));
         _onClosed = onClosed ?? throw new ArgumentNullException(nameof(onClosed));
@@ -138,8 +158,13 @@ public class OptionsViewModel : ViewModelBase
                 break;
         }
 
-        IsEasyMode = settings.QuizConfiguration.Difficulty == QuizDifficulty.Easy;
-        IsHardMode = settings.QuizConfiguration.Difficulty == QuizDifficulty.Hard;
+        switch (settings.QuizConfiguration.Difficulty)
+        {
+            case QuizDifficulty.Easy:   IsEasyMode = true; break;
+            case QuizDifficulty.Hard:   IsHardMode = true; break;
+            case QuizDifficulty.Typing: IsTypingMode = true; break;
+        }
+        IsTypingRevealLetters = settings.QuizConfiguration.TypingRevealLetters;
     }
 
     private QuizDirection GetSelectedDirection()
@@ -152,11 +177,13 @@ public class OptionsViewModel : ViewModelBase
     }
 
     private QuizDifficulty GetSelectedDifficulty() =>
-        IsHardMode ? QuizDifficulty.Hard : QuizDifficulty.Easy;
+        IsHardMode   ? QuizDifficulty.Hard   :
+        IsTypingMode ? QuizDifficulty.Typing :
+        QuizDifficulty.Easy;
 
     private void SaveAndClose()
     {
-        _onSave(QuizIntervalSeconds, AutoCloseSeconds, OptionCount, GetSelectedDirection(), GetSelectedDifficulty());
+        _onSave(QuizIntervalSeconds, AutoCloseSeconds, OptionCount, GetSelectedDirection(), GetSelectedDifficulty(), IsTypingRevealLetters);
         _onClosed();
     }
 }

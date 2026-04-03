@@ -33,7 +33,11 @@ static class Program
 //  + Improve ARCHITECTURE.md: Make sure that infrastructure layer is on the diagram
 //  + Выбирать в варианты "похожие" слова - нужно определять "расстояние" между словами
 //  ** Возможность просить напечатать ответ (требуется нормализация списка)
-
+//   * IMPROVEMENTS:
+//     * Show correcly typed characters in hint (if hint is turned on)
+//     * After correct answer close window on "enter"
+//     * If answer has brackets, do not take them into account
+//     * Exclude words with non-latin letters or with more than 3 words in answer (including article and words in brackets)
 
 //todo Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
 

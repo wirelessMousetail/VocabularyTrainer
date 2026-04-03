@@ -40,4 +40,10 @@ public class QuizConfiguration
     /// Default is <see cref="QuizDifficulty.Easy"/>.
     /// </summary>
     public QuizDifficulty Difficulty { get; init; } = QuizDifficulty.Easy;
+
+    /// <summary>
+    /// Gets a value indicating whether to reveal one letter per wrong attempt in Typing mode.
+    /// Default is false.
+    /// </summary>
+    public bool TypingRevealLetters { get; init; } = false;
 }
