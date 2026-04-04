@@ -3,10 +3,12 @@ namespace VocabularyTrainer.Services;
 /// <summary>
 /// Tracks which letters of the correct answer have been revealed based on the user's typed attempts.
 /// Encapsulates gate policy (contiguous block ≥ minBlock), random bonus reveal, and mask accumulation.
+/// Supports multi-option answers: locks to the option the user aligns best with once the gate opens.
 /// </summary>
 public class LetterHintTracker
 {
     private bool[]? _revealMask;
+    private int? _lockedOptionIndex;
     private readonly int _minBlock;
     private readonly Func<bool> _bonusRevealDecider;
 
@@ -17,40 +19,58 @@ public class LetterHintTracker
     }
 
     /// <summary>
-    /// Call after each wrong attempt. Normalizes both strings, computes alignment,
-    /// applies gate + random bonus, and merges into the accumulated mask.
+    /// Call after each wrong attempt. Normalizes typed input, selects the best-matching option
+    /// (or uses the locked option if already set), applies gate + random bonus, and merges into
+    /// the accumulated mask.
     /// </summary>
-    public void Update(string typed, string correct)
+    public void Update(string typed, IReadOnlyList<string> options)
     {
         var lowerTyped = typed.Trim().ToLowerInvariant();
-        var lowerCorrect = correct.Trim().ToLowerInvariant();
 
-        var matched = SequenceAligner.FindMatches(lowerTyped, lowerCorrect);
-
-        // Gate check: only open if at least one contiguous block of matches is >= _minBlock
-        int blockLen = 0;
-        var gateOpen = GateOpen(matched, blockLen);
-
-        if (gateOpen)
+        if (_lockedOptionIndex.HasValue)
         {
-            // Merge with existing mask (revealed letters are never hidden again)
-            if (_revealMask == null)
-                _revealMask = matched;
-            else
-                for (int i = 0; i < _revealMask.Length; i++)
-                    _revealMask[i] |= matched[i];
-        }
-        else if (_bonusRevealDecider())
-        {
-            // Gate still closed — random bonus: reveal the leftmost not-yet-revealed non-space char
-            _revealMask ??= new bool[lowerCorrect.Length];
-            for (int i = 0; i < lowerCorrect.Length; i++)
+            // Already locked — only align against the locked option
+            var lockedOption = options[_lockedOptionIndex.Value].Trim().ToLowerInvariant();
+            var matched = SequenceAligner.FindMatches(lowerTyped, lockedOption);
+            if (GateOpen(matched))
             {
-                if (!_revealMask[i] && lowerCorrect[i] != ' ')
+                MergeMask(matched);
+            }
+            else if (_bonusRevealDecider() && _revealMask != null)
+            {
+                RevealLeftmostUnrevealed(lockedOption);
+            }
+        }
+        else
+        {
+            // Not locked — try all options and pick the best match
+            int bestIdx = 0;
+            bool[] bestMatched = [];
+            int bestRun = 0;
+
+            for (int i = 0; i < options.Count; i++)
+            {
+                var lowerOption = options[i].Trim().ToLowerInvariant();
+                var matched = SequenceAligner.FindMatches(lowerTyped, lowerOption);
+                int run = LongestContiguousRun(matched);
+                // Ties prefer index 0 (lower index wins when runs are equal)
+                if (run > bestRun)
                 {
-                    _revealMask[i] = true;
-                    break;
+                    bestRun = run;
+                    bestIdx = i;
+                    bestMatched = matched;
                 }
+            }
+
+            if (bestRun >= _minBlock)
+            {
+                _lockedOptionIndex = bestIdx;
+                MergeMask(bestMatched);
+            }
+            else
+            {
+                // Gate closed and not locked — bonus is a no-op per spec
+                // (can't reveal without a committed option)
             }
         }
     }
@@ -58,34 +78,67 @@ public class LetterHintTracker
     /// <summary>
     /// Returns null when nothing has been revealed yet.
     /// Returns the hint string (e.g. "bezet_en") once any reveal has occurred.
-    /// Spaces are always visible. Uses original (non-normalized) casing of <paramref name="correct"/>.
+    /// Spaces are always visible. Uses original (non-normalized) casing of the locked option.
     /// </summary>
-    public string? GetHint(string correct)
+    public string? GetHint(IReadOnlyList<string> options)
     {
-        if (_revealMask == null)
+        if (_revealMask == null || !_lockedOptionIndex.HasValue)
             return null;
 
-        var trimmed = correct.Trim();
-        var chars = new char[trimmed.Length];
-        for (int i = 0; i < trimmed.Length; i++)
+        var option = options[_lockedOptionIndex.Value].Trim();
+        var chars = new char[option.Length];
+        for (int i = 0; i < option.Length; i++)
         {
-            if (_revealMask[i] || trimmed[i] == ' ')
-                chars[i] = trimmed[i];
+            if (i < _revealMask.Length && (_revealMask[i] || option[i] == ' '))
+                chars[i] = option[i];
             else
                 chars[i] = '_';
         }
         return new string(chars);
     }
 
-    private bool GateOpen(bool[] matched, int blockLen)
+    private void MergeMask(bool[] matched)
     {
-        bool gateOpen = false;
+        if (_revealMask == null)
+            _revealMask = matched;
+        else
+            for (int i = 0; i < _revealMask.Length; i++)
+                _revealMask[i] |= matched[i];
+    }
+
+    private void RevealLeftmostUnrevealed(string lowerOption)
+    {
+        _revealMask ??= new bool[lowerOption.Length];
+        for (int i = 0; i < lowerOption.Length; i++)
+        {
+            if (!_revealMask[i] && lowerOption[i] != ' ')
+            {
+                _revealMask[i] = true;
+                break;
+            }
+        }
+    }
+
+    private bool GateOpen(bool[] matched)
+    {
+        int blockLen = 0;
         for (int j = 0; j < matched.Length; j++)
         {
             blockLen = matched[j] ? blockLen + 1 : 0;
-            if (blockLen >= _minBlock) { gateOpen = true; break; }
+            if (blockLen >= _minBlock) return true;
         }
+        return false;
+    }
 
-        return gateOpen;
+    private static int LongestContiguousRun(bool[] matched)
+    {
+        int best = 0;
+        int current = 0;
+        foreach (var b in matched)
+        {
+            current = b ? current + 1 : 0;
+            if (current > best) best = current;
+        }
+        return best;
     }
 }

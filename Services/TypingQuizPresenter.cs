@@ -4,6 +4,7 @@ namespace VocabularyTrainer.Services;
 
 /// <summary>
 /// Presenter for typing-mode quizzes where the user types a free-text answer.
+/// Supports multi-option answers: any option (after bracket-stripping) is accepted as correct.
 /// </summary>
 public class TypingQuizPresenter : IQuizPresenter
 {
@@ -11,6 +12,7 @@ public class TypingQuizPresenter : IQuizPresenter
     private readonly WordWeightStrategy _weightStrategy;
     private readonly WordListService _wordListService;
     private readonly LetterHintTracker? _hintTracker;
+    private readonly IReadOnlyList<string> _options;
     private QuizResult _result = QuizResult.Pending;
 
     public TypingQuizPresenter(Quiz quiz, WordWeightStrategy weightStrategy, WordListService wordListService, bool revealLetters)
@@ -19,6 +21,7 @@ public class TypingQuizPresenter : IQuizPresenter
         _weightStrategy = weightStrategy;
         _wordListService = wordListService;
         _hintTracker = revealLetters ? new LetterHintTracker() : null;
+        _options = AnswerParser.Options(quiz.CorrectAnswer);
     }
 
     public void OnAnswerSelected(string typed)
@@ -26,7 +29,8 @@ public class TypingQuizPresenter : IQuizPresenter
         if (_result == QuizResult.Correct || _result == QuizResult.MaxAttemptsReached)
             return;
 
-        if (Normalize(typed) == Normalize(_quiz.CorrectAnswer))
+        var normTyped = Normalize(typed);
+        if (_options.Any(opt => normTyped == Normalize(opt)))
         {
             _result = QuizResult.Correct;
             _weightStrategy.RegisterCorrect(_quiz.WordEntry);
@@ -35,7 +39,7 @@ public class TypingQuizPresenter : IQuizPresenter
         }
 
         // Check for wrong Dutch article (correct noun but wrong article)
-        if (IsWrongArticle(typed, _quiz.CorrectAnswer))
+        if (_options.Any(opt => IsWrongArticle(typed, opt)))
         {
             _result = QuizResult.WrongArticle;
             _weightStrategy.RegisterMistake(_quiz.WordEntry);
@@ -47,14 +51,14 @@ public class TypingQuizPresenter : IQuizPresenter
         _weightStrategy.RegisterMistake(_quiz.WordEntry);
         _wordListService.SaveWords();
 
-        _hintTracker?.Update(typed, _quiz.CorrectAnswer);
+        _hintTracker?.Update(typed, _options);
     }
 
     public QuizResult GetResult() => _result;
 
-    public string GetCorrectAnswer() => _quiz.CorrectAnswer;
+    public string GetCorrectAnswer() => AnswerParser.Canonical(_quiz.CorrectAnswer);
 
-    public string? GetHint() => _hintTracker?.GetHint(_quiz.CorrectAnswer);
+    public string? GetHint() => _hintTracker?.GetHint(_options);
 
     private static bool IsWrongArticle(string typed, string correct)
     {

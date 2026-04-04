@@ -41,7 +41,11 @@ static class Program
 //     + After correct answer close window on "enter"
 //     * If answer has brackets, do not take them into account
 //     * Exclude words with non-latin letters or with more than 3 words in answer (including article and words in brackets)
+//     * Algorithm in SequenceAligner.FindMatches should be properly described in javadoc (or whatever they call it)
+//     * "Bonus" reveal should show random symbol, not one by one
+//     * In LetterHintTracker, if gate closed and not locked, should be a chance to reveal a bonus letter for the first option
 //  * Review namespace and directory structure
+//  * Refine words list and make sure that it is compliant
 
 //todo Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
 

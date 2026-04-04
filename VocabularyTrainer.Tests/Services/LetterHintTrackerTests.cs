@@ -15,8 +15,8 @@ public class LetterHintTrackerTests
     public void GetHint_ReturnsNull(string? typed, string correct)
     {
         var tracker = new LetterHintTracker(bonusRevealDecider: () => false);
-        if (typed != null) tracker.Update(typed, correct);
-        tracker.GetHint(correct).Should().BeNull();
+        if (typed != null) tracker.Update(typed, new[] { correct });
+        tracker.GetHint(new[] { correct }).Should().BeNull();
     }
 
     // ── Gate open — single attempt ────────────────────────────────────────────
@@ -29,8 +29,8 @@ public class LetterHintTrackerTests
     public void GateOpen_SingleAttempt_ShowsMatchedChars(string typed, string correct, string expected)
     {
         var tracker = new LetterHintTracker(bonusRevealDecider: () => false);
-        tracker.Update(typed, correct);
-        tracker.GetHint(correct).Should().Be(expected);
+        tracker.Update(typed, new[] { correct });
+        tracker.GetHint(new[] { correct }).Should().Be(expected);
     }
 
     // ── Mask accumulation ─────────────────────────────────────────────────────
@@ -39,22 +39,35 @@ public class LetterHintTrackerTests
     public void MaskAccumulates_WeakerAttemptDoesNotShrinkReveal()
     {
         var tracker = new LetterHintTracker(bonusRevealDecider: () => false);
-        tracker.Update("bekent", "bekend");
-        tracker.GetHint("bekend").Should().Be("beken_");
+        tracker.Update("bekent", new[] { "bekend" });
+        tracker.GetHint(new[] { "bekend" }).Should().Be("beken_");
 
-        tracker.Update("bek___", "bekend"); // weaker — gate still open, mask must not shrink
-        tracker.GetHint("bekend").Should().Be("beken_");
+        tracker.Update("bek___", new[] { "bekend" }); // weaker — gate still open, mask must not shrink
+        tracker.GetHint(new[] { "bekend" }).Should().Be("beken_");
     }
 
     // ── Bonus reveal ──────────────────────────────────────────────────────────
 
     [Fact]
-    public void BonusReveal_GateClosed_RevealsLeftmostNonSpaceChar()
+    public void BonusReveal_GateClosed_NotLocked_IsNoop()
     {
-        // Gate stays closed on "xy" vs "bezetten"; bonus=true reveals first char
+        // Gate stays closed on "xy" vs "bezetten" and tracker is not yet locked;
+        // bonus fires but is a no-op — cannot reveal without a committed option.
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
-        tracker.Update("xy", "bezetten");
-        tracker.GetHint("bezetten").Should().Be("b_______");
+        tracker.Update("xy", new[] { "bezetten" });
+        tracker.GetHint(new[] { "bezetten" }).Should().BeNull();
+    }
+
+    [Fact]
+    public void BonusReveal_GateClosed_WhenLocked_RevealsLeftmostNonSpaceChar()
+    {
+        // First update opens gate (locks to "bezetten"); second update closes gate but
+        // bonus fires, revealing the next unrevealed non-space char.
+        var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
+        tracker.Update("bezeten", new[] { "bezetten" }); // gate opens: "bezet_en"
+        tracker.Update("xy", new[] { "bezetten" });      // gate closed, locked, bonus=true: reveals next char
+        // After first update: "bezet_en" — the '_' is index 5 ('t'), so bonus reveals it
+        tracker.GetHint(new[] { "bezetten" }).Should().Be("bezetten");
     }
 
     [Fact]
@@ -63,8 +76,52 @@ public class LetterHintTrackerTests
         // Gate opens on "bekent" → "beken_"; then gate-closed attempt with bonus=true
         // reveals the next unrevealed non-space char ("d" at index 5)
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
-        tracker.Update("bekent", "bekend"); // gate opens: "beken_"
-        tracker.Update("xy", "bekend");     // gate closed, bonus=true: reveals "d"
-        tracker.GetHint("bekend").Should().Be("bekend");
+        tracker.Update("bekent", new[] { "bekend" }); // gate opens: "beken_"
+        tracker.Update("xy", new[] { "bekend" });     // gate closed, bonus=true: reveals "d"
+        tracker.GetHint(new[] { "bekend" }).Should().Be("bekend");
+    }
+
+    // ── Multi-option behavior ─────────────────────────────────────────────────
+
+    [Fact]
+    public void MultiOption_BestMatchChosen_GateOpen()
+    {
+        // "caat" aligns better to "cat" (run of 3) than to "dog" (no match).
+        // Gate opens, locks to "cat", hint renders against "cat".
+        var tracker = new LetterHintTracker(bonusRevealDecider: () => false);
+        tracker.Update("caat", new[] { "dog", "cat" });
+        tracker.GetHint(new[] { "dog", "cat" }).Should().Be("cat");
+    }
+
+    [Fact]
+    public void MultiOption_LockedAfterGateOpen_StaysLocked()
+    {
+        // First update aligns to "appointment" (long run of 8), gate opens, locks to index 0.
+        // Second update types "agreement" which is closer to options[1], but the lock must hold.
+        var tracker = new LetterHintTracker(bonusRevealDecider: () => false);
+        string[] options = ["appointment", "agreement"];
+
+        // "appointmnt" vs "appointment": run of 8 ("appointm"), gate opens → locked to index 0
+        tracker.Update("appointmnt", options);
+        var firstHint = tracker.GetHint(options);
+        firstHint.Should().NotBeNull();
+        // Hint is from "appointment", not "agreement"
+        firstHint.Should().StartWith("a");
+        firstHint!.Length.Should().Be("appointment".Length);
+
+        // Now type the exact text of the second option — tracker must stay locked to "appointment"
+        tracker.Update("agreement", options);
+        // Still locked to "appointment": hint length must be 11 (not 9 for "agreement")
+        tracker.GetHint(options)!.Length.Should().Be("appointment".Length);
+    }
+
+    [Fact]
+    public void MultiOption_BonusNoop_WhenNotLocked()
+    {
+        // "xyz" matches neither "foo" nor "bar" well enough to open gate
+        // bonus=true but no lock → GetHint should return null
+        var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
+        tracker.Update("xyz", new[] { "foo", "bar" });
+        tracker.GetHint(new[] { "foo", "bar" }).Should().BeNull();
     }
 }
