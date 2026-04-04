@@ -82,7 +82,11 @@ public class OptionsViewModel : ViewModelBase
     public bool IsEasyMode
     {
         get => _isEasyMode;
-        set => SetProperty(ref _isEasyMode, value);
+        set
+        {
+            SetProperty(ref _isEasyMode, value);
+            if (value) IsTypingRevealLetters = false;
+        }
     }
 
     /// <summary>
@@ -91,7 +95,11 @@ public class OptionsViewModel : ViewModelBase
     public bool IsHardMode
     {
         get => _isHardMode;
-        set => SetProperty(ref _isHardMode, value);
+        set
+        {
+            SetProperty(ref _isHardMode, value);
+            if (value) IsTypingRevealLetters = false;
+        }
     }
 
     /// <summary>
