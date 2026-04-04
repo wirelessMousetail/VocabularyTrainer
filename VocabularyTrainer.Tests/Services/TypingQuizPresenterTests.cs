@@ -148,20 +148,53 @@ public class TypingQuizPresenterTests : IDisposable
     }
 
     [Fact]
-    public void RevealLetters_AfterOneWrong_RevealsOneChar()
+    public void RevealLetters_SubstitutionOnly_ShowsMatchedChars()
     {
-        var presenter = MakePresenter("de hond", "dog", revealLetters: true);
-        presenter.OnAnswerSelected("cat"); // 1st wrong attempt
-        presenter.GetHint().Should().Be("d__");
+        // "bekent" vs "bekend": 5 matching chars then substitution → "beken_"
+        var presenter = MakePresenter("nice", "bekend", revealLetters: true);
+        presenter.OnAnswerSelected("bekent");
+        presenter.GetHint().Should().Be("beken_");
     }
 
     [Fact]
-    public void RevealLetters_AfterTwoWrong_RevealsTwoChars()
+    public void RevealLetters_Deletion_ShowsMatchedCharsAroundGap()
     {
-        var presenter = MakePresenter("de hond", "dog", revealLetters: true);
-        presenter.OnAnswerSelected("cat"); // 1st wrong
-        presenter.OnAnswerSelected("cat"); // 2nd wrong
-        presenter.GetHint().Should().Be("do_");
+        // "bezeten" vs "bezetten": user dropped one 't' → gap between bezet and en
+        var presenter = MakePresenter("nice", "bezetten", revealLetters: true);
+        presenter.OnAnswerSelected("bezeten");
+        presenter.GetHint().Should().Be("bezet_en");
+    }
+
+    [Fact]
+    public void RevealLetters_GateOpens_IsolatedMatchesAlsoRevealed()
+    {
+        // "bisetten" vs "bezetten": block "etten"(5) opens gate → isolated "b" also shown
+        var presenter = MakePresenter("nice", "bezetten", revealLetters: true);
+        presenter.OnAnswerSelected("bisetten");
+        presenter.GetHint().Should().Be("b__etten");
+    }
+
+    [Fact]
+    public void RevealLetters_MaskAccumulates_BetterAttemptExpandsReveal()
+    {
+        // First attempt produces a reveal; weaker second attempt must not shrink it
+        var presenter = MakePresenter("nice", "bekend", revealLetters: true);
+        presenter.OnAnswerSelected("bekent"); // → "beken_"
+        var firstHint = presenter.GetHint();
+        firstHint.Should().Be("beken_");
+
+        presenter.OnAnswerSelected("bek___"); // weaker — gate still open, mask must not shrink
+        presenter.GetHint().Should().Be(firstHint);
+    }
+
+    [Fact]
+    public void RevealLetters_SpacesAlwaysVisible()
+    {
+        // "de hand" vs "de hond": substitution a→o, space always shown
+        // blocks: "de h"(4) ≥ 3 opens gate; "nd"(2) also revealed via gate
+        var presenter = MakePresenter("hond", "de hond", revealLetters: true);
+        presenter.OnAnswerSelected("de hand");
+        presenter.GetHint().Should().Be("de h_nd");
     }
 
     // ── Weight updates ────────────────────────────────────────────────────────
