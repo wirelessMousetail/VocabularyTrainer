@@ -67,11 +67,12 @@ public class TypingQuizPresenterTests : IDisposable
     // ── GetHint — returns null ────────────────────────────────────────────────
 
     [Theory]
-    [InlineData(false, "cat")] // reveal disabled: always null even after wrong answer
-    [InlineData(true,  null)]  // reveal enabled but no attempt yet
-    public void GetHint_ReturnsNull(bool revealLetters, string? typed)
+    [InlineData(false, "de hond", "dog",    "cat")]    // reveal disabled, no partial match
+    [InlineData(false, "nice",    "bekend", "bekent")] // reveal disabled, partial match that would open gate — still null
+    [InlineData(true,  "de hond", "dog",    null)]     // reveal enabled but no attempt yet
+    public void GetHint_ReturnsNull(bool revealLetters, string question, string correct, string? typed)
     {
-        var presenter = MakePresenter("de hond", "dog", revealLetters);
+        var presenter = MakePresenter(question, correct, revealLetters);
         if (typed != null)
             presenter.OnAnswerSelected(typed);
         presenter.GetHint().Should().BeNull();
@@ -88,7 +89,7 @@ public class TypingQuizPresenterTests : IDisposable
     [InlineData("nice", "bezetten", "bisetten", "b__etten")]
     // space always visible; block "de h"(4) opens gate
     [InlineData("hond", "de hond",  "de hand",  "de h_nd")]
-    public void RevealLetters_SingleAttempt_Hint(string question, string correct, string typed, string expectedHint)
+    public void RevealLetters_GateOpen_ShowsMatchedChars(string question, string correct, string typed, string expectedHint)
     {
         var presenter = MakePresenter(question, correct, revealLetters: true);
         presenter.OnAnswerSelected(typed);

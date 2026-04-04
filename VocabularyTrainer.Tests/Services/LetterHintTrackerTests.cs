@@ -9,8 +9,9 @@ public class LetterHintTrackerTests
     // ── GetHint returns null ──────────────────────────────────────────────────
 
     [Theory]
-    [InlineData(null,  "bekend")]   // no attempt yet
-    [InlineData("xy",  "bezetten")] // gate closed (no 3-char block), bonus suppressed
+    [InlineData(null,   "bekend")]        // no attempt yet
+    [InlineData("xy",   "bezetten")]      // gate closed — no matches at all
+    [InlineData("psae", "de prestatie")]  // gate closed — isolated matches exist but no 3-char block
     public void GetHint_ReturnsNull(string? typed, string correct)
     {
         var tracker = new LetterHintTracker(bonusRevealDecider: () => false);
