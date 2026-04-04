@@ -34,7 +34,11 @@ static class Program
 //  + Выбирать в варианты "похожие" слова - нужно определять "расстояние" между словами
 //  ** Возможность просить напечатать ответ (требуется нормализация списка)
 //   * IMPROVEMENTS:
-//     * Show correcly typed characters in hint (if hint is turned on)
+//     + Show correcly typed characters in hint (if hint is turned on)
+//     + Parametrize tests (for now only for TypingQuizPresenter)
+//     * Validate single responsibility principle for TypingQuizPresenter
+//     * Review namespace and directory structure
+//     * Switch to Typing difficulty when reveal is set
 //     * After correct answer close window on "enter"
 //     * If answer has brackets, do not take them into account
 //     * Exclude words with non-latin letters or with more than 3 words in answer (including article and words in brackets)
