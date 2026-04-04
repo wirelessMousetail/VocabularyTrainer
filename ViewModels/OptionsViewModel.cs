@@ -109,7 +109,16 @@ public class OptionsViewModel : ViewModelBase
     public bool IsTypingRevealLetters
     {
         get => _isTypingRevealLetters;
-        set => SetProperty(ref _isTypingRevealLetters, value);
+        set
+        {
+            SetProperty(ref _isTypingRevealLetters, value);
+            if (value && !_isTypingMode)
+            {
+                IsEasyMode = false;
+                IsHardMode = false;
+                IsTypingMode = true;
+            }
+        }
     }
 
     /// <summary>

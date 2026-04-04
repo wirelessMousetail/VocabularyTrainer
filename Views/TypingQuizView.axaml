@@ -36,7 +36,7 @@
         </Style>
     </Window.Styles>
 
-    <Panel>
+    <Panel x:Name="RootPanel" Focusable="True">
         <StackPanel Margin="24" VerticalAlignment="Center">
             <TextBlock Text="{Binding Question}"
                        Classes="question"/>
