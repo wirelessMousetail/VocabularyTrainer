@@ -36,7 +36,7 @@ static class Program
 //   * IMPROVEMENTS:
 //     + Show correcly typed characters in hint (if hint is turned on)
 //     + Parametrize tests (for now only for TypingQuizPresenter)
-//     * Validate single responsibility principle for TypingQuizPresenter
+//     + Validate single responsibility principle for TypingQuizPresenter
 //     * Review namespace and directory structure
 //     * Switch to Typing difficulty when reveal is set
 //     * After correct answer close window on "enter"

@@ -9,38 +9,21 @@ public class SequenceAlignerTests
     private static string Render(bool[] mask, string correct)
         => new string(correct.Select((c, i) => mask[i] ? c : '_').ToArray());
 
-    [Fact]
-    public void ExactMatch_AllPositionsMatched()
+    [Theory]
+    [InlineData("dog",     "dog",      "dog")]       // exact match
+    [InlineData("xyz",     "dog",      "___")]       // no overlap
+    [InlineData("bekent",  "bekend",   "beken_")]    // substitution at last char
+    [InlineData("bezeten", "bezetten", "bezet_en")]  // deletion — skip-correct tie-breaking prefers earlier alignment
+    public void FindMatches_Render(string typed, string correct, string expected)
     {
-        var mask = SequenceAligner.FindMatches("dog", "dog");
-        Render(mask, "dog").Should().Be("dog");
-    }
-
-    [Fact]
-    public void NoOverlap_NoPositionsMatched()
-    {
-        var mask = SequenceAligner.FindMatches("xyz", "dog");
-        Render(mask, "dog").Should().Be("___");
-    }
-
-    [Fact]
-    public void Substitution_MatchedExceptSubstituted()
-    {
-        var mask = SequenceAligner.FindMatches("bekent", "bekend");
-        Render(mask, "bekend").Should().Be("beken_");
-    }
-
-    [Fact]
-    public void Deletion_SkipCorrectTieBreaking_PrefersEarlierAlignment()
-    {
-        var mask = SequenceAligner.FindMatches("bezeten", "bezetten");
-        Render(mask, "bezetten").Should().Be("bezet_en");
+        var mask = SequenceAligner.FindMatches(typed, correct);
+        Render(mask, correct).Should().Be(expected);
     }
 
     [Fact]
     public void ResultLength_EqualsCorrectLength()
     {
         var mask = SequenceAligner.FindMatches("anything", "dog");
-        mask.Length.Should().Be(3);
+        mask.Length.Should().Be("dog".Length);
     }
 }
