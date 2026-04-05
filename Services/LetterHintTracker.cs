@@ -32,11 +32,11 @@ public class LetterHintTracker
             // Already locked — only align against the locked option
             var lockedOption = options[_lockedOptionIndex.Value].Trim().ToLowerInvariant();
             var matched = SequenceAligner.FindMatches(lowerTyped, lockedOption);
-            if (GateOpen(matched))
+            if (GateOpen(matched) && HasNewReveals(matched))
             {
                 MergeMask(matched);
             }
-            else if (_bonusRevealDecider() && _revealMask != null)
+            else if (_bonusRevealDecider())
             {
                 RevealLeftmostUnrevealed(lockedOption);
             }
@@ -67,10 +67,11 @@ public class LetterHintTracker
                 _lockedOptionIndex = bestIdx;
                 MergeMask(bestMatched);
             }
-            else
+            else if (_bonusRevealDecider())
             {
-                // Gate closed and not locked — bonus is a no-op per spec
-                // (can't reveal without a committed option)
+                // Gate closed and not locked — lock to primary option (index 0) and reveal leftmost char
+                _lockedOptionIndex = 0;
+                RevealLeftmostUnrevealed(options[0].Trim().ToLowerInvariant());
             }
         }
     }
@@ -117,6 +118,14 @@ public class LetterHintTracker
                 break;
             }
         }
+    }
+
+    private bool HasNewReveals(bool[] matched)
+    {
+        if (_revealMask == null) return true;
+        for (int i = 0; i < matched.Length && i < _revealMask.Length; i++)
+            if (matched[i] && !_revealMask[i]) return true;
+        return false;
     }
 
     private bool GateOpen(bool[] matched)
