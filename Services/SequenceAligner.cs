@@ -8,11 +8,43 @@ namespace VocabularyTrainer.Services;
 public static class SequenceAligner
 {
     /// <summary>
-    /// Returns a <c>bool[correct.Length]</c> marking which positions in <paramref name="correct"/>
-    /// are matched by <paramref name="typed"/> via edit-distance alignment.
-    /// Includes skip-correct tie-breaking: prefers aligning typed chars to earlier (leftmost)
-    /// correct positions, giving more intuitive hints.
+    /// Aligns <paramref name="typed"/> against <paramref name="correct"/> using classic
+    /// Levenshtein edit distance and returns a <c>bool[correct.Length]</c> where each
+    /// <c>true</c> entry marks a position in <paramref name="correct"/> that was matched
+    /// by a character in <paramref name="typed"/>.
     /// </summary>
+    /// <remarks>
+    /// <para><b>Algorithm overview:</b></para>
+    /// <list type="number">
+    ///   <item><description>
+    ///     Build an (m+1) × (n+1) DP table where <c>dp[i,j]</c> is the minimum edit distance
+    ///     between the first <c>i</c> chars of <paramref name="typed"/> and the first <c>j</c>
+    ///     chars of <paramref name="correct"/>. Cells are filled bottom-up with the standard
+    ///     recurrence: match costs 0, substitution/insertion/deletion each cost 1.
+    ///   </description></item>
+    ///   <item><description>
+    ///     Backtrace from <c>dp[m,n]</c> to <c>dp[0,0]</c>, reconstructing the optimal
+    ///     alignment. At each step the backtrace chooses among match, substitution, typed-delete
+    ///     (advance typed only), or correct-skip (advance correct only).
+    ///   </description></item>
+    ///   <item><description>
+    ///     <b>Skip-correct tie-breaking:</b> when a diagonal match (typed[i]==correct[j]) is
+    ///     possible but skipping the current correct char costs the same (<c>dp[i,j-1]+1 == dp[i,j]</c>),
+    ///     the skip is preferred. This biases the alignment so that typed characters are
+    ///     matched against the earliest (leftmost) possible positions in <paramref name="correct"/>,
+    ///     producing more intuitive hints — e.g. "bezet_en" instead of "beze_ten" when the
+    ///     user types "bezeten" for "bezetten".
+    ///   </description></item>
+    /// </list>
+    /// <para>No gate logic is applied — the method always returns a result regardless of how
+    /// many positions were matched. Gate policy is the caller's responsibility.</para>
+    /// </remarks>
+    /// <param name="typed">The user's typed attempt (should be pre-normalized: trimmed, lowercase).</param>
+    /// <param name="correct">The correct answer to align against (should be pre-normalized).</param>
+    /// <returns>
+    /// A <c>bool[]</c> of length <c>correct.Length</c>. Entry <c>i</c> is <c>true</c> when
+    /// position <c>i</c> of <paramref name="correct"/> was matched during the optimal alignment.
+    /// </returns>
     public static bool[] FindMatches(string typed, string correct)
     {
         int m = typed.Length;
