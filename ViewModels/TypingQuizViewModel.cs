@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
@@ -7,20 +6,22 @@ using Timer = System.Timers.Timer;
 namespace VocabularyTrainer.ViewModels;
 
 /// <summary>
-/// View model for the quiz window, handling quiz presentation logic.
+/// View model for the typing-mode quiz window.
 /// </summary>
-public class QuizViewModel : ViewModelBase
+public class TypingQuizViewModel : ViewModelBase
 {
     private const string ColorDefault = "Black";
     private const string ColorCorrect = "Green";
     private const string ColorWrong = "Red";
-    private const string ColorMaxAttempts = "Orange";
+    private const string ColorArticle = "Orange";
 
     private readonly QuizSession _session;
     private readonly Action _onQuizCompleted;
     private Timer? _autoCloseTimer;
 
     private string _question = string.Empty;
+    private string _textInput = string.Empty;
+    private string _hintText = string.Empty;
     private string _resultMessage = string.Empty;
     private string _resultColor = ColorDefault;
     private bool _isQuizCompleted;
@@ -35,9 +36,22 @@ public class QuizViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Gets the collection of answer options.
+    /// Gets or sets the text the user has typed as their answer.
     /// </summary>
-    public ObservableCollection<string> AnswerOptions { get; }
+    public string TextInput
+    {
+        get => _textInput;
+        set => SetProperty(ref _textInput, value);
+    }
+
+    /// <summary>
+    /// Gets the letter-reveal hint text (shown when TypingRevealLetters is enabled).
+    /// </summary>
+    public string HintText
+    {
+        get => _hintText;
+        private set => SetProperty(ref _hintText, value);
+    }
 
     /// <summary>
     /// Gets the result message (Correct!, Wrong!, etc.).
@@ -67,32 +81,31 @@ public class QuizViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Command executed when an answer is selected.
+    /// Command executed when the user submits their typed answer.
     /// </summary>
-    public RelayCommand<string> AnswerCommand { get; }
+    public RelayCommand SubmitCommand { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="QuizViewModel"/> class.
+    /// Initializes a new instance of the <see cref="TypingQuizViewModel"/> class.
     /// </summary>
     /// <param name="session">The quiz session.</param>
     /// <param name="onQuizCompleted">Callback when the quiz is completed.</param>
-    public QuizViewModel(QuizSession session, Action onQuizCompleted)
+    public TypingQuizViewModel(QuizSession session, Action onQuizCompleted)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
         _onQuizCompleted = onQuizCompleted ?? throw new ArgumentNullException(nameof(onQuizCompleted));
 
         Question = _session.Quiz.Question;
-        AnswerOptions = new ObservableCollection<string>(_session.Quiz.Options);
 
-        AnswerCommand = new RelayCommand<string>(OnAnswerSelected, _ => !IsQuizCompleted);
+        SubmitCommand = new RelayCommand(OnSubmit, () => !IsQuizCompleted);
     }
 
-    private void OnAnswerSelected(string? selectedAnswer)
+    private void OnSubmit()
     {
-        if (string.IsNullOrEmpty(selectedAnswer) || IsQuizCompleted)
+        if (IsQuizCompleted || string.IsNullOrEmpty(TextInput))
             return;
 
-        _session.Presenter.OnAnswerSelected(selectedAnswer);
+        _session.Presenter.OnAnswerSelected(TextInput);
         var result = _session.Presenter.GetResult();
 
         switch (result)
@@ -101,30 +114,30 @@ public class QuizViewModel : ViewModelBase
                 ResultMessage = "Correct!";
                 ResultColor = ColorCorrect;
                 IsQuizCompleted = true;
+                SubmitCommand.RaiseCanExecuteChanged();
                 StartAutoCloseTimer();
+                break;
+
+            case QuizResult.WrongArticle:
+                ResultMessage = "Wrong article!";
+                ResultColor = ColorArticle;
+                UpdateHint();
                 break;
 
             case QuizResult.Wrong:
                 ResultMessage = "Wrong!";
                 ResultColor = ColorWrong;
-
-                if (_session.Configuration.ShowCorrectAnswerOnWrong)
-                {
-                    var correctAnswer = _session.Presenter.GetCorrectAnswer();
-                    ResultMessage += $" (Correct: {correctAnswer})";
-                }
-                break;
-
-            case QuizResult.MaxAttemptsReached:
-                var answer = _session.Presenter.GetCorrectAnswer();
-                ResultMessage = $"Max attempts reached. Answer: {answer}";
-                ResultColor = ColorMaxAttempts;
-                IsQuizCompleted = true;
-                StartAutoCloseTimer();
+                UpdateHint();
                 break;
         }
 
-        AnswerCommand.RaiseCanExecuteChanged();
+        SubmitCommand.RaiseCanExecuteChanged();
+    }
+
+    private void UpdateHint()
+    {
+        var hint = _session.Presenter.GetHint();
+        HintText = hint ?? string.Empty;
     }
 
     private void StartAutoCloseTimer()
@@ -137,7 +150,6 @@ public class QuizViewModel : ViewModelBase
         _autoCloseTimer.Elapsed += (_, _) =>
         {
             _autoCloseTimer.Stop();
-            // Marshal to UI thread since timer runs on background thread
             Dispatcher.UIThread.Post(() => _onQuizCompleted());
         };
         _autoCloseTimer.AutoReset = false;

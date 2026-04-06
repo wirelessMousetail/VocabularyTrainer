@@ -9,4 +9,6 @@ public static class QuizDifficultyExtensions
         QuizDifficulty.Hard => new HardDistractorSelector(),
         _ => new EasyDistractorSelector()
     };
+
+    public static bool IsTypingMode(this QuizDifficulty d) => d == QuizDifficulty.Typing;
 }

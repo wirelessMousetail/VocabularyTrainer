@@ -40,7 +40,8 @@ public class SettingsService
     /// <param name="optionCount">Number of answer options.</param>
     /// <param name="direction">Quiz direction mode.</param>
     /// <param name="difficulty">Quiz difficulty mode.</param>
-    public void UpdateSettings(int quizIntervalSeconds, int autoCloseAfterCorrectSeconds, int optionCount, QuizDirection direction, QuizDifficulty difficulty)
+    /// <param name="typingRevealLetters">Whether to reveal letters on wrong attempts in Typing mode.</param>
+    public void UpdateSettings(int quizIntervalSeconds, int autoCloseAfterCorrectSeconds, int optionCount, QuizDirection direction, QuizDifficulty difficulty, bool typingRevealLetters)
     {
         _currentSettings = new AppSettings
         {
@@ -52,7 +53,8 @@ public class SettingsService
                 ShowCorrectAnswerOnWrong = _currentSettings.QuizConfiguration.ShowCorrectAnswerOnWrong,
                 MaxAttemptsPerQuiz = _currentSettings.QuizConfiguration.MaxAttemptsPerQuiz,
                 Direction = direction,
-                Difficulty = difficulty
+                Difficulty = difficulty,
+                TypingRevealLetters = typingRevealLetters
             }
         };
 

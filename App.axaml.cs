@@ -88,7 +88,7 @@ public partial class App : Application
     {
         Dispatcher.UIThread.Post(() =>
         {
-            QuizView? window = null;
+            Window? window = null;
             bool completedNotified = false;
 
             void NotifyCompleted()
@@ -98,16 +98,24 @@ public partial class App : Application
                 _applicationService!.OnQuizCompleted();
             }
 
-            var viewModel = new QuizViewModel(session, () =>
+            if (session.Configuration.Difficulty.IsTypingMode())
             {
-                window?.Close();
-                NotifyCompleted();
-            });
-
-            window = new QuizView
+                var vm = new TypingQuizViewModel(session, () =>
+                {
+                    window?.Close();
+                    NotifyCompleted();
+                });
+                window = new TypingQuizView { DataContext = vm };
+            }
+            else
             {
-                DataContext = viewModel
-            };
+                var vm = new QuizViewModel(session, () =>
+                {
+                    window?.Close();
+                    NotifyCompleted();
+                });
+                window = new QuizView { DataContext = vm };
+            }
 
             // Ensure timer restarts even when window is closed via OS controls
             window.Closed += (_, _) => NotifyCompleted();
@@ -129,8 +137,12 @@ public partial class App : Application
             OptionsView? window = null;
 
             var viewModel = new OptionsViewModel(
-                settingsService,
-                () => appService.ApplySettings(),
+                settingsService.GetSettings(),
+                (interval, autoClose, count, dir, diff, revealLetters) =>
+                {
+                    settingsService.UpdateSettings(interval, autoClose, count, dir, diff, revealLetters);
+                    appService.ApplySettings();
+                },
                 () => window?.Close()
             );
 

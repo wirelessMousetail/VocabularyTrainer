@@ -43,9 +43,18 @@ public class QuizService
         if (_words.Count == 0)
             return null;
 
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, SelectWordByWeight());
-        var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
-        return new QuizSession(quiz, presenter, configuration);
+        var word = SelectWordByWeight();
+
+        if (configuration.Difficulty.IsTypingMode())
+        {
+            var quiz = CreateTypingQuiz(configuration.Direction, word);
+            var presenter = new TypingQuizPresenter(quiz, _weightStrategy, wordListService, configuration.TypingRevealLetters);
+            return new QuizSession(quiz, presenter, configuration);
+        }
+
+        var mcQuiz = CreateQuiz(configuration.OptionCount, configuration.Direction, word);
+        var mcPresenter = new QuizPresenter(mcQuiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
+        return new QuizSession(mcQuiz, mcPresenter, configuration);
     }
 
     /// <summary>
@@ -53,9 +62,38 @@ public class QuizService
     /// </summary>
     internal QuizSession CreateQuizSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
     {
-        var quiz = CreateQuiz(configuration.OptionCount, configuration.Direction, word);
-        var presenter = new QuizPresenter(quiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
-        return new QuizSession(quiz, presenter, configuration);
+        if (configuration.Difficulty.IsTypingMode())
+        {
+            var quiz = CreateTypingQuiz(configuration.Direction, word);
+            var presenter = new TypingQuizPresenter(quiz, _weightStrategy, wordListService, configuration.TypingRevealLetters);
+            return new QuizSession(quiz, presenter, configuration);
+        }
+
+        var mcQuiz = CreateQuiz(configuration.OptionCount, configuration.Direction, word);
+        var mcPresenter = new QuizPresenter(mcQuiz, _weightStrategy, wordListService, configuration.MaxAttemptsPerQuiz);
+        return new QuizSession(mcQuiz, mcPresenter, configuration);
+    }
+
+    /// <summary>
+    /// Creates a typing quiz (no options) for the specified word and direction.
+    /// </summary>
+    private Quiz CreateTypingQuiz(QuizDirection direction, WordEntry correct)
+    {
+        bool isReversed = direction switch
+        {
+            QuizDirection.Direct => false,
+            QuizDirection.Reverse => true,
+            QuizDirection.Random => Random.Shared.Next(2) == 1,
+            _ => false
+        };
+
+        return new Quiz(
+            isReversed ? correct.Answer : correct.Question,
+            isReversed ? correct.Question : correct.Answer,
+            [],
+            correct,
+            new Dictionary<string, WordEntry>()
+        );
     }
 
     /// <summary>

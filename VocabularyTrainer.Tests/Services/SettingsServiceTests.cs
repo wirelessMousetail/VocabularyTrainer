@@ -48,7 +48,7 @@ public class SettingsServiceTests : IDisposable
     public void UpdateSettings_PersistsValues_RoundTrip()
     {
         var service = new SettingsService(_tempFile);
-        service.UpdateSettings(600, 10, 4, QuizDirection.Reverse, QuizDifficulty.Easy);
+        service.UpdateSettings(600, 10, 4, QuizDirection.Reverse, QuizDifficulty.Easy, false);
 
         // Re-create from same file to verify persistence
         var reloaded = new SettingsService(_tempFile);
@@ -107,7 +107,7 @@ public class SettingsServiceTests : IDisposable
         File.WriteAllText(_tempFile, json);
 
         var service = new SettingsService(_tempFile);
-        service.UpdateSettings(600, 10, 4, QuizDirection.Reverse, QuizDifficulty.Easy);
+        service.UpdateSettings(600, 10, 4, QuizDirection.Reverse, QuizDifficulty.Easy, false);
 
         var settings = service.GetSettings();
         settings.QuizConfiguration.ShowCorrectAnswerOnWrong.Should().BeTrue();

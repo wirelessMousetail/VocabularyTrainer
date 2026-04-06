@@ -30,17 +30,10 @@ public class HardDistractorSelector : IDistractorSelector
         double bestSimilarity = StringDistance.JaroWinkler(
             sorted[0].Question.ToLowerInvariant(), correct.Question.ToLowerInvariant());
 
-        Console.WriteLine($"[HardSelector] correct='{correct.Question}' closest='{sorted[0].Question}' jw={bestSimilarity:F3}");
-
         if (bestSimilarity < SimilarityThreshold)
-        {
-            Console.WriteLine($"[HardSelector] no similar words found (threshold={SimilarityThreshold}) — falling back to random");
             return candidates.OrderBy(_ => Random.Shared.Next()).Take(count).ToList();
-        }
 
         int k = Math.Min(sorted.Count, 2 * count);
-        var selected = sorted.Take(k).OrderBy(_ => Random.Shared.Next()).Take(count).ToList();
-        Console.WriteLine($"[HardSelector] top-{k} pool: [{string.Join(", ", sorted.Take(k).Select(w => $"{w.Question}({StringDistance.JaroWinkler(w.Question.ToLowerInvariant(), correct.Question.ToLowerInvariant()):F3})"))}] → picked: [{string.Join(", ", selected.Select(w => w.Question))}]");
-        return selected;
+        return sorted.Take(k).OrderBy(_ => Random.Shared.Next()).Take(count).ToList();
     }
 }
