@@ -1,4 +1,6 @@
-﻿namespace VocabularyTrainer.Services;
+﻿using VocabularyTrainer.Models;
+
+namespace VocabularyTrainer.Services;
 
 public class QuizPresenter : IQuizPresenter
 {
@@ -34,8 +36,15 @@ public class QuizPresenter : IQuizPresenter
             return;
         }
 
-        // Wrong answer - register mistake
+        // Wrong answer - register mistake on the asked word
         _weightStrategy.RegisterMistake(_quiz.WordEntry);
+
+        // Also penalise the option the user confused it with
+        if (_quiz.OptionEntries.TryGetValue(selectedAnswer, out var wrongEntry))
+        {
+            _weightStrategy.RegisterMistake(wrongEntry);
+        }
+
         _wordListService.SaveWords();
 
         if (_maxAttempts.HasValue && _attemptCount >= _maxAttempts.Value)

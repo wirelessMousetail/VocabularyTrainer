@@ -56,4 +56,32 @@ public class CsvWordRepositoryTests : IDisposable
 
         _repo.Load(_tempFile).Should().BeEmpty();
     }
+
+    [Fact]
+    public void Load_Throws_WhenFileDoesNotExist()
+    {
+        // arrange
+        var missingPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".csv");
+
+        // act
+        var act = () => _repo.Load(missingPath);
+
+        // assert
+        act.Should().Throw<IOException>();
+    }
+
+    [Fact]
+    public void Load_TrimsWhitespace_FromQuestionAndAnswer()
+    {
+        // arrange
+        File.WriteAllLines(_tempFile, [" de hond ; dog "]);
+
+        // act
+        var result = _repo.Load(_tempFile);
+
+        // assert
+        result.Should().HaveCount(1);
+        result[0].Question.Should().Be("de hond");
+        result[0].Answer.Should().Be("dog");
+    }
 }

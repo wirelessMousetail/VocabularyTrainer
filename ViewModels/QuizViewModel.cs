@@ -13,13 +13,18 @@ namespace VocabularyTrainer.ViewModels;
 /// </summary>
 public class QuizViewModel : ViewModelBase
 {
+    private const string ColorDefault = "Black";
+    private const string ColorCorrect = "Green";
+    private const string ColorWrong = "Red";
+    private const string ColorMaxAttempts = "Orange";
+
     private readonly QuizSession _session;
     private readonly Action _onQuizCompleted;
     private System.Timers.Timer? _autoCloseTimer;
 
     private string _question = string.Empty;
     private string _resultMessage = string.Empty;
-    private string _resultColor = "Black";
+    private string _resultColor = ColorDefault;
     private bool _isQuizCompleted;
 
     /// <summary>
@@ -96,14 +101,14 @@ public class QuizViewModel : ViewModelBase
         {
             case QuizResult.Correct:
                 ResultMessage = "Correct!";
-                ResultColor = "Green";
+                ResultColor = ColorCorrect;
                 IsQuizCompleted = true;
                 StartAutoCloseTimer();
                 break;
 
             case QuizResult.Wrong:
                 ResultMessage = "Wrong!";
-                ResultColor = "Red";
+                ResultColor = ColorWrong;
 
                 if (_session.Configuration.ShowCorrectAnswerOnWrong)
                 {
@@ -115,7 +120,7 @@ public class QuizViewModel : ViewModelBase
             case QuizResult.MaxAttemptsReached:
                 var answer = _session.Presenter.GetCorrectAnswer();
                 ResultMessage = $"Max attempts reached. Answer: {answer}";
-                ResultColor = "Orange";
+                ResultColor = ColorMaxAttempts;
                 IsQuizCompleted = true;
                 StartAutoCloseTimer();
                 break;
@@ -148,6 +153,7 @@ public class QuizViewModel : ViewModelBase
     {
         if (IsQuizCompleted)
         {
+            _autoCloseTimer?.Stop();
             _onQuizCompleted();
         }
     }

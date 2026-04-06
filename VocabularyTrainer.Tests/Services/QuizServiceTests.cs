@@ -8,8 +8,8 @@ namespace VocabularyTrainer.Tests.Services;
 
 public class QuizServiceTests
 {
-    private static QuizService Build(IEnumerable<WordEntry> words) =>
-        new(words.ToList(), new WordWeightStrategy());
+    private static QuizService Build(IEnumerable<WordEntry> words, IDistractorSelector? selector = null) =>
+        new(words.ToList(), new WordWeightStrategy(), selector ?? new EasyDistractorSelector());
 
     private static QuizConfiguration Config(int options = 3, QuizDirection dir = QuizDirection.Direct) =>
         new() { OptionCount = options, Direction = dir };
@@ -165,6 +165,36 @@ public class QuizServiceTests
         // OptionCount = 3 needs 2 distractors, but only 1 is available after synonym exclusion
         var session = Build(words).CreateQuizSessionForWord(auto, Config(options: 3), null!);
         session.Quiz.Options.Should().HaveCount(2);
+    }
+
+    // ── Hard difficulty ───────────────────────────────────────────────────────
+
+    [Fact]
+    public void HardDifficulty_PrefersSimilarDutchDistractors()
+    {
+        // Distance is measured on the Dutch (Question) side.
+        // "hond" correct; "bond","fond","pond","rond" are all Dutch distance 1.
+        // "bibliotheek" (d≈8) and "vliegtuig" (d≈7) are always outside the
+        // top-K=4 eligible pool, so their English answers must never appear.
+        var correct     = WordEntryFixture.Make("hond",        "dog",      WordGroup.Other);
+        var similar1    = WordEntryFixture.Make("bond",        "bond",     WordGroup.Other);
+        var similar2    = WordEntryFixture.Make("fond",        "fond",     WordGroup.Other);
+        var similar3    = WordEntryFixture.Make("pond",        "pound",    WordGroup.Other);
+        var similar4    = WordEntryFixture.Make("rond",        "round",    WordGroup.Other);
+        var dissimilar1 = WordEntryFixture.Make("bibliotheek", "library",  WordGroup.Other);
+        var dissimilar2 = WordEntryFixture.Make("vliegtuig",   "airplane", WordGroup.Other);
+
+        var words = new List<WordEntry> { correct, similar1, similar2, similar3, similar4, dissimilar1, dissimilar2 };
+        var service = Build(words, new HardDistractorSelector());
+        var config = new QuizConfiguration { OptionCount = 3, Direction = QuizDirection.Direct };
+
+        // Run multiple times to account for randomness within the top-K pool
+        for (int i = 0; i < 20; i++)
+        {
+            var session = service.CreateQuizSessionForWord(correct, config, null!);
+            session.Quiz.Options.Should().NotContain("library");
+            session.Quiz.Options.Should().NotContain("airplane");
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

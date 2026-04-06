@@ -11,17 +11,25 @@ public class QuizService
 {
     private readonly List<WordEntry> _words;
     private readonly WordWeightStrategy _weightStrategy;
+    private IDistractorSelector _selector;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QuizService"/> class.
     /// </summary>
     /// <param name="words">The list of vocabulary words to use for quizzes.</param>
     /// <param name="weightStrategy">The strategy for calculating word weights and selection probability.</param>
-    public QuizService(List<WordEntry> words, WordWeightStrategy weightStrategy)
+    /// <param name="selector">The distractor selection strategy.</param>
+    public QuizService(List<WordEntry> words, WordWeightStrategy weightStrategy, IDistractorSelector selector)
     {
         _words = words;
         _weightStrategy = weightStrategy;
+        _selector = selector;
     }
+
+    /// <summary>
+    /// Updates the distractor selector when the difficulty setting changes.
+    /// </summary>
+    public void SetSelector(IDistractorSelector selector) => _selector = selector;
 
     /// <summary>
     /// Creates a new quiz session with selected word, options, and presenter logic.
@@ -59,7 +67,6 @@ public class QuizService
     /// <returns>A configured <see cref="Quiz"/> instance.</returns>
     private Quiz CreateQuiz(int optionCount, QuizDirection direction, WordEntry correct)
     {
-
         // Determine actual direction for this quiz
         bool isReversed = direction switch
         {
@@ -69,6 +76,33 @@ public class QuizService
             _ => false
         };
 
+        var pool = GetOptionPool(correct, optionCount, isReversed).ToList();
+
+        var selected = _selector.Select(pool, correct, optionCount - 1);
+
+        var options = selected
+            .Select(w => isReversed ? w.Question : w.Answer)
+            .Distinct()
+            .ToList();
+
+        options.Add(isReversed ? correct.Question : correct.Answer);
+        options = options.OrderBy(_ => Random.Shared.Next()).ToList();
+
+        var optionEntries = new Dictionary<string, WordEntry>();
+        foreach (var w in selected)
+            optionEntries.TryAdd(isReversed ? w.Question : w.Answer, w);
+
+        return new Quiz(
+            isReversed ? correct.Answer : correct.Question,
+            isReversed ? correct.Question : correct.Answer,
+            options,
+            correct,
+            optionEntries
+        );
+    }
+
+    private IEnumerable<WordEntry> GetOptionPool(WordEntry correct, int optionCount, bool isReversed)
+    {
         var correctTarget = (isReversed ? correct.Question : correct.Answer).Trim();
         bool IsSynonym(WordEntry w) =>
             string.Equals((isReversed ? w.Question : w.Answer).Trim(), correctTarget, StringComparison.OrdinalIgnoreCase);
@@ -78,36 +112,13 @@ public class QuizService
             string.Equals((isReversed ? w.Answer : w.Question).Trim(), correctSource, StringComparison.OrdinalIgnoreCase);
 
         var sameGroupItems = _words
-            .Where(i =>
-                i != correct &&
-                i.Group == correct.Group &&
-                !IsSynonym(i) &&
-                !IsAlsoCorrect(i))
+            .Where(i => i != correct && i.Group == correct.Group && !IsSynonym(i) && !IsAlsoCorrect(i))
             .ToList();
 
-        IEnumerable<WordEntry> pool = sameGroupItems.Count >= optionCount - 1
-            ? sameGroupItems
-            : _words.Where(w => w != correct && !IsSynonym(w) && !IsAlsoCorrect(w));
+        if (sameGroupItems.Count >= optionCount - 1)
+            return sameGroupItems;
 
-        var options = pool
-            .Select(w => isReversed ? w.Question : w.Answer)
-            .Distinct()
-            .OrderBy(_ => Random.Shared.Next())
-            .Take(optionCount - 1)
-            .ToList();
-
-        options.Add(isReversed ? correct.Question : correct.Answer);
-
-        options = options
-            .OrderBy(_ => Random.Shared.Next())
-            .ToList();
-
-        return new Quiz(
-            isReversed ? correct.Answer : correct.Question,
-            isReversed ? correct.Question : correct.Answer,
-            options,
-            correct
-        );
+        return _words.Where(w => w != correct && !IsSynonym(w) && !IsAlsoCorrect(w));
     }
 
     /// <summary>

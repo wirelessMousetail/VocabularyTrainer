@@ -30,27 +30,27 @@ VocabularyTrainer is a cross-platform desktop application built on .NET 8.0. The
 ### Core Components
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                 ApplicationService                  │
-│          (Application Orchestrator)                 │
-└──────────────┬──────────────────────────────────────┘
-               │
-       ┌───────┴─────────┐
-       │                 │
-┌──────▼───────┐  ┌──────▼────────┐
-│  UI Layer    │  │ Service Layer │
-│              │  │               │
-│ - QuizView   │  │ - QuizService │
-│ - OptionsView│  │ - Settings    │
-│ - TrayIcon   │  │ - WordList    │
-└──────────────┘  └──────┬────────┘
-                         │
-                  ┌──────▼────────┐
-                  │  Model Layer  │
-                  │               │
-                  │ - Domain      │
-                  │ - Data        │
-                  └───────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       App.axaml.cs                           │
+│                  (Entry Point / Wiring Hub)                  │
+└──────┬────────────────────────┬──────────────────┬───────────┘
+       │                        │                  │
+┌──────▼───────┐   ┌────────────▼───────┐   ┌──────▼───────────────┐
+│   UI Layer   │   │   Service Layer    │   │  Infrastructure Layer │
+│              │   │                   │   │                       │
+│ - QuizView   │   │ - AppService       │   │ - TrayIconService     │
+│ - OptionsView│   │ - QuizService      │   └───────────────────────┘
+└──────────────┘   │ - WordList         │           │
+        │          │ - Settings         │           │
+        └─────────►│ - WordWeight...    │◄──────────┘
+                   └────────┬───────────┘
+                            │
+                   ┌────────▼───────────┐
+                   │    Model Layer     │
+                   │                   │
+                   │ - Domain models   │
+                   │ - Configuration   │
+                   └───────────────────┘
 ```
 
 ---
@@ -100,7 +100,7 @@ Domain entities representing core concepts:
 **Domain Models:**
 - `WordEntry`: Represents a vocabulary word with question, answer, weight data, and group
 - `WeightData`: Encapsulates weight and streak tracking
-- `Quiz`: Represents a single quiz instance with question, correct answer, and options
+- `Quiz`: Data carrier for a single quiz (question, correct answer, options, word)
 - `QuizSession`: Bundles quiz, presenter, and configuration
 
 **Configuration Models:**
@@ -127,6 +127,7 @@ Business logic and orchestration:
    - Selects words using weight-based probability
    - Generates multiple-choice options from same word group
    - Applies quiz direction (Direct, Reverse, Random)
+   - Uses `Quiz` (`Models/Quiz.cs`) as a data carrier (question, correct answer, options)
 
 2. `WordListService`: Manages application vocabulary
    - Loads and merges the precompiled word list into the managed word list during startup
@@ -160,6 +161,13 @@ Business logic and orchestration:
    - Static utility for detecting word groups
    - Dutch-specific grammar rules (detects "de/het" for nouns, "-en" for verbs)
 
+**Application Orchestrator:**
+
+8. **`ApplicationService`**
+   - Main application orchestrator
+   - Manages quiz timer (AutoReset=false)
+   - Coordinates services and fires UI events (`QuizRequested`, `OptionsRequested`, `ExitRequested`)
+
 ### UI Layer
 
 **Views (Avalonia MVVM):**
@@ -182,13 +190,6 @@ Business logic and orchestration:
    - Wires services to views via events
    - Dispatches UI work to the UI thread
 
-**Application Orchestrator:**
-
-4. **`ApplicationService`**
-   - Main application orchestrator
-   - Manages quiz timer
-   - Coordinates services
-
 ### Infrastructure Layer
 
 **System Integration:**
@@ -206,42 +207,47 @@ Business logic and orchestration:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    ApplicationService                       │
-│                                                             │
-│  ┌──────────────┐   ┌──────────────┐  ┌─────────────────┐   │
-│  │   Timer      │   │TrayIconSvc   │  │ SettingsService │   │
-│  └──────┬───────┘   └──────┬───────┘  └────────┬────────┘   │
-│         │                  │                   │            │
-│         │ (on tick)        │ (on action)       │ (get)      │
-│         ▼                  ▼                   ▼            │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              ShowQuiz() / OpenOptions()              │   │
-│  └──────────────┬───────────────────────────────────────┘   │
-└─────────────────┼───────────────────────────────────────────┘
-                  │ (events → App.axaml.cs → Dispatcher)
-         ┌────────┴────────┐
-         │                 │
-    ┌────▼────┐      ┌─────▼──────┐
-    │QuizView │      │OptionsView │
-    └────┬────┘      └─────┬──────┘
-         │                 │
-         │                 │ (updates)
-         │                 ▼
-    ┌────▼───────────────────────────┐
-    │       QuizSession              │
-    │  ┌────────────────────────┐    │
-    │  │  Quiz (data)           │    │
-    │  │  QuizPresenter (logic) │────┼──► WordWeightStrategy
-    │  │  QuizConfiguration     │    │
-    │  └────────────────────────┘    │
-    └───────┬────────────────────────┘
-            │
-            │ (on answer)
-            ▼
-    ┌──────────────────┐
-    │ WordListService  │
-    │   (saves)        │
-    └──────────────────┘
+│                       App.axaml.cs                          │
+│                  (Entry Point / Wiring)                     │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │ creates                      │ creates
+               ▼                             ▼
+┌──────────────────────────┐     ┌────────────────────────┐
+│    ApplicationService    │◄────│    TrayIconService     │
+│                          │     │  (pause/resume/        │
+│  ┌──────────────────┐    │     │   options/exit)        │
+│  │  Timer (on tick) │    │     └────────────────────────┘
+│  └────────┬─────────┘    │
+│           │              │
+│           ▼              │
+│      ShowQuiz()          │
+└──────────────┬───────────┘
+               │ (events → Dispatcher)
+        ┌──────┴───────┐
+        │              │
+   ┌────▼────┐    ┌─────▼──────┐
+   │QuizView │    │OptionsView │
+   └────┬────┘    └─────┬──────┘
+        │               │ (save/load)
+        │               ▼
+        │      ┌─────────────────┐
+        │      │ SettingsService │
+        │      └─────────────────┘
+        ▼
+┌───────────────────────────────────┐
+│           QuizSession             │
+│  ┌─────────────────────────────┐  │
+│  │  Quiz (data)                │  │
+│  │  QuizPresenter (logic)   ───┼──┼──► WordWeightStrategy
+│  │  QuizConfiguration          │  │
+│  └─────────────────────────────┘  │
+└──────────────┬────────────────────┘
+               │ (on answer)
+               ▼
+      ┌─────────────────┐
+      │ WordListService │
+      │   (saves)       │
+      └─────────────────┘
 ```
 
 ### Service Dependencies
@@ -690,15 +696,15 @@ Inject into `ApplicationService` for milestone notifications.
 
 **Example:**
 ```csharp
-[Test]
+[Fact]
 public void RegisterMistake_IncreasesWeight()
 {
     var strategy = new WordWeightStrategy();
-    var word = new WordEntry("test", "test", new WeightData(10, 0));
+    var word = WordEntryFixture.Make("test", "test", weight: 10);
 
     strategy.RegisterMistake(word);
 
-    Assert.AreEqual(31, word.WeightData.Weight); // (10 * 3) + 1
+    word.WeightData.Weight.Should().Be(31); // (10 * 3) + 1
 }
 ```
 
@@ -855,5 +861,3 @@ VocabularyTrainer's architecture balances simplicity with maintainability. The c
 - Comprehensive test coverage
 - Enhanced error handling and logging
 - Database migration for scalability
-
-For implementation details, see [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md).

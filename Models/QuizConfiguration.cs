@@ -34,4 +34,10 @@ public class QuizConfiguration
     /// Default is <see cref="QuizDirection.Direct"/>.
     /// </summary>
     public QuizDirection Direction { get; init; } = QuizDirection.Direct;
+
+    /// <summary>
+    /// Gets the quiz difficulty mode (Easy uses random distractors, Hard uses similar-looking distractors).
+    /// Default is <see cref="QuizDifficulty.Easy"/>.
+    /// </summary>
+    public QuizDifficulty Difficulty { get; init; } = QuizDifficulty.Easy;
 }

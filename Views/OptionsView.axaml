@@ -4,9 +4,9 @@
         x:Class="VocabularyTrainer.Views.OptionsView"
         x:DataType="vm:OptionsViewModel"
         Title="Options"
-        Width="450" Height="480"
-        MinWidth="400" MinHeight="450"
-        CanResize="False"
+        Width="450" Height="680"
+        MinWidth="400" MinHeight="600"
+        CanResize="True"
         WindowStartupLocation="CenterScreen"
         Icon="/Resources/tray.ico">
 
@@ -32,62 +32,82 @@
         </Style>
     </Window.Styles>
 
-    <Panel>
-        <StackPanel Margin="24" VerticalAlignment="Top">
-            <!-- Quiz Interval -->
-            <TextBlock Text="Quiz interval (seconds):" Classes="label"/>
-            <NumericUpDown Value="{Binding QuizIntervalSeconds}"
-                           Minimum="1"
-                           Maximum="100000"
-                           Increment="10"
-                           FormatString="0"/>
-
-            <!-- Auto-close Delay -->
-            <TextBlock Text="Auto-close after correct (seconds):" Classes="label"/>
-            <NumericUpDown Value="{Binding AutoCloseSeconds}"
-                           Minimum="1"
-                           Maximum="300"
-                           Increment="1"
-                           FormatString="0"/>
-
-            <!-- Number of Options -->
-            <TextBlock Text="Number of answer options:" Classes="label"/>
-            <NumericUpDown Value="{Binding OptionCount}"
-                           Minimum="2"
-                           Maximum="10"
-                           Increment="1"
-                           FormatString="0"/>
-
-            <!-- Quiz Direction -->
-            <TextBlock Text="Quiz Direction:" Classes="label" Margin="0,20,0,8"/>
-            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Padding="12">
-                <StackPanel>
-                    <RadioButton Content="Direct (Dutch → English)"
-                                 IsChecked="{Binding IsDirectMode}"
-                                 GroupName="Direction"/>
-                    <RadioButton Content="Reverse (English → Dutch)"
-                                 IsChecked="{Binding IsReverseMode}"
-                                 GroupName="Direction"/>
-                    <RadioButton Content="Random"
-                                 IsChecked="{Binding IsRandomMode}"
-                                 GroupName="Direction"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Buttons -->
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,24,0,0">
-                <Button Content="Save"
-                        Command="{Binding SaveCommand}"
-                        Classes="action accent"/>
-                <Button Content="Cancel"
-                        Command="{Binding CancelCommand}"
-                        Classes="action"/>
-            </StackPanel>
+    <DockPanel>
+        <!-- Buttons pinned to the bottom -->
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="24,12,24,24">
+            <Button Content="Save"
+                    Command="{Binding SaveCommand}"
+                    Classes="action accent"/>
+            <Button Content="Cancel"
+                    Command="{Binding CancelCommand}"
+                    Classes="action"/>
         </StackPanel>
-    </Panel>
+
+        <!-- Scrollable settings content -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24,24,24,0">
+                <!-- Quiz Interval -->
+                <TextBlock Text="Quiz interval (seconds):" Classes="label"/>
+                <NumericUpDown Value="{Binding QuizIntervalSeconds}"
+                               Minimum="1"
+                               Maximum="100000"
+                               Increment="10"
+                               FormatString="0"/>
+
+                <!-- Auto-close Delay -->
+                <TextBlock Text="Auto-close after correct (seconds):" Classes="label"/>
+                <NumericUpDown Value="{Binding AutoCloseSeconds}"
+                               Minimum="1"
+                               Maximum="300"
+                               Increment="1"
+                               FormatString="0"/>
+
+                <!-- Number of Options -->
+                <TextBlock Text="Number of answer options:" Classes="label"/>
+                <NumericUpDown Value="{Binding OptionCount}"
+                               Minimum="2"
+                               Maximum="10"
+                               Increment="1"
+                               FormatString="0"/>
+
+                <!-- Quiz Direction -->
+                <TextBlock Text="Quiz Direction:" Classes="label" Margin="0,20,0,8"/>
+                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12">
+                    <StackPanel>
+                        <RadioButton Content="Direct (Dutch → English)"
+                                     IsChecked="{Binding IsDirectMode}"
+                                     GroupName="Direction"/>
+                        <RadioButton Content="Reverse (English → Dutch)"
+                                     IsChecked="{Binding IsReverseMode}"
+                                     GroupName="Direction"/>
+                        <RadioButton Content="Random"
+                                     IsChecked="{Binding IsRandomMode}"
+                                     GroupName="Direction"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Difficulty -->
+                <TextBlock Text="Difficulty:" Classes="label" Margin="0,20,0,8"/>
+                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12">
+                    <StackPanel>
+                        <RadioButton Content="Easy — random distractors"
+                                     IsChecked="{Binding IsEasyMode}"
+                                     GroupName="Difficulty"/>
+                        <RadioButton Content="Hard — similar-looking distractors"
+                                     IsChecked="{Binding IsHardMode}"
+                                     GroupName="Difficulty"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

@@ -15,6 +15,8 @@ public class ApplicationService : IDisposable
     private readonly SettingsService _settingsService;
     private readonly System.Timers.Timer _nextQuizTimer;
     private bool _isPaused;
+    private bool _isQuizOpen;
+    private DateTime _timerStartedAt;
 
     /// <summary>
     /// Event raised when a new quiz should be shown.
@@ -38,6 +40,16 @@ public class ApplicationService : IDisposable
     public event EventHandler<string>? ErrorOccurred;
 
     /// <summary>
+    /// Event raised when the current quiz window is closed.
+    /// </summary>
+    public event EventHandler? QuizClosed;
+
+    /// <summary>
+    /// Event raised when the quiz timer is restarted due to a settings change.
+    /// </summary>
+    public event EventHandler? TimerRestarted;
+
+    /// <summary>
     /// Gets a value indicating whether the application is paused.
     /// </summary>
     public bool IsPaused => _isPaused;
@@ -56,11 +68,12 @@ public class ApplicationService : IDisposable
         _wordListService = new WordListService(precompiledPath, managedPath);
         var words = _wordListService.LoadAndMerge();
 
+        var settings = _settingsService.GetSettings();
         var weightStrategy = new WordWeightStrategy();
-        _quizService = new QuizService(words, weightStrategy);
+        _quizService = new QuizService(words, weightStrategy, settings.QuizConfiguration.Difficulty.CreateSelector());
 
         _nextQuizTimer = new System.Timers.Timer();
-        _nextQuizTimer.Interval = _settingsService.GetSettings().QuizIntervalSeconds * 1000;
+        _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
         _nextQuizTimer.Elapsed += OnTimerElapsed;
         _nextQuizTimer.AutoReset = false; // Manual restart after quiz closes
     }
@@ -91,6 +104,7 @@ public class ApplicationService : IDisposable
             return;
 
         _isPaused = false;
+        _timerStartedAt = DateTime.UtcNow;
         _nextQuizTimer.Start();
     }
 
@@ -108,12 +122,20 @@ public class ApplicationService : IDisposable
     public void ApplySettings()
     {
         var settings = _settingsService.GetSettings();
-        _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
+        _quizService.SetSelector(settings.QuizConfiguration.Difficulty.CreateSelector());
 
-        if (!_isPaused)
+        if (!_isPaused && !_isQuizOpen)
         {
             _nextQuizTimer.Stop();
+            _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
+            _timerStartedAt = DateTime.UtcNow;
             _nextQuizTimer.Start();
+            TimerRestarted?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            // Store the new interval so OnQuizCompleted/Resume pick it up correctly
+            _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
         }
     }
 
@@ -130,15 +152,40 @@ public class ApplicationService : IDisposable
     /// </summary>
     public void OnQuizCompleted()
     {
+        _isQuizOpen = false;
         if (!_isPaused)
         {
+            _timerStartedAt = DateTime.UtcNow;
             _nextQuizTimer.Start();
         }
+        QuizClosed?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Shows a quiz immediately, unless the application is paused or already opened.
+    /// </summary>
+    public void ShowQuizNow()
+    {
+        if (_isPaused || _isQuizOpen)
+            return;
+        ShowQuiz();
+    }
+
+    /// <summary>
+    /// Returns the time remaining until the next quiz, or null if paused or the timer is not running.
+    /// </summary>
+    public TimeSpan? GetTimeUntilNextQuiz()
+    {
+        if (_isPaused || !_nextQuizTimer.Enabled)
+            return null;
+        var elapsed = DateTime.UtcNow - _timerStartedAt;
+        var remaining = TimeSpan.FromMilliseconds(_nextQuizTimer.Interval) - elapsed;
+        return remaining < TimeSpan.Zero ? TimeSpan.Zero : remaining;
     }
 
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (_isPaused)
+        if (_isPaused || _isQuizOpen)
             return;
 
         ShowQuiz();
@@ -146,6 +193,8 @@ public class ApplicationService : IDisposable
 
     private void ShowQuiz()
     {
+        _nextQuizTimer.Stop();
+
         var settings = _settingsService.GetSettings();
         var session = _quizService.CreateQuizSession(settings.QuizConfiguration, _wordListService);
 
@@ -155,6 +204,7 @@ public class ApplicationService : IDisposable
             return;
         }
 
+        _isQuizOpen = true;
         QuizRequested?.Invoke(this, session);
     }
 
