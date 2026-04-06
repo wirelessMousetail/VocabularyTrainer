@@ -51,22 +51,25 @@ public class LetterHintTrackerTests
     [Fact]
     public void BonusReveal_GateClosed_NotLocked_LocksAndRevealsPrimaryOption()
     {
-        // Gate stays closed on "xy" vs options; bonus fires → locks to index 0, reveals first char.
+        // Gate stays closed on "xy" vs options; bonus fires → locks to index 0, reveals one random char.
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
         tracker.Update("xy", new[] { "bezetten", "other" });
-        // Locked to "bezetten" (index 0), first non-space char 'b' revealed
-        tracker.GetHint(new[] { "bezetten", "other" }).Should().Be("b_______");
+        // Locked to "bezetten" (index 0), exactly one non-space char revealed
+        var hint = tracker.GetHint(new[] { "bezetten", "other" });
+        hint.Should().NotBeNull();
+        hint!.Should().HaveLength(8);
+        hint!.Count(c => c != '_').Should().Be(1);
     }
 
     [Fact]
-    public void BonusReveal_GateClosed_WhenLocked_RevealsLeftmostNonSpaceChar()
+    public void BonusReveal_GateClosed_WhenLocked_RevealsOneUnrevealedNonSpaceChar()
     {
         // First update opens gate (locks to "bezetten"); second update closes gate but
-        // bonus fires, revealing the next unrevealed non-space char.
+        // bonus fires, revealing the one remaining unrevealed non-space char.
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
         tracker.Update("bezeten", new[] { "bezetten" }); // gate opens: "bezet_en"
-        tracker.Update("xy", new[] { "bezetten" });      // gate closed, locked, bonus=true: reveals next char
-        // After first update: "bezet_en" — the '_' is index 5 ('t'), so bonus reveals it
+        tracker.Update("xy", new[] { "bezetten" });      // gate closed, locked, bonus=true: reveals the only '_' (index 5)
+        // Only one unrevealed candidate exists, so result is deterministic
         tracker.GetHint(new[] { "bezetten" }).Should().Be("bezetten");
     }
 
@@ -86,13 +89,17 @@ public class LetterHintTrackerTests
     {
         // "regeaaaa" aligns to "regelen" — "rege" (run of 4) opens gate, mask becomes "rege___"
         // "regebbbb" — same prefix match, gate would open but reveals nothing new;
-        // bonus should fire and reveal next unrevealed char 'l' at index 4
+        // bonus should fire and reveal one random unrevealed char from the remaining three
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
         tracker.Update("regeaaaa", new[] { "regelen" });
         tracker.GetHint(new[] { "regelen" }).Should().Be("rege___");
 
         tracker.Update("regebbbb", new[] { "regelen" });
-        tracker.GetHint(new[] { "regelen" }).Should().Be("regel__");
+        var hint = tracker.GetHint(new[] { "regelen" });
+        // "rege" (4) + 1 bonus = 5 revealed, 2 still hidden
+        hint.Should().NotBeNull();
+        hint![..4].Should().Be("rege");
+        hint.Count(c => c != '_').Should().Be(5);
     }
 
     // ── Multi-option behavior ─────────────────────────────────────────────────
@@ -133,9 +140,12 @@ public class LetterHintTrackerTests
     public void MultiOption_Bonus_WhenNotLocked_LocksToFirstOption()
     {
         // "xyz" matches neither "foo" nor "bar" well enough to open gate;
-        // bonus fires → locks to index 0 ("foo"), reveals first char 'f'.
+        // bonus fires → locks to index 0 ("foo"), reveals one random char.
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
         tracker.Update("xyz", new[] { "foo", "bar" });
-        tracker.GetHint(new[] { "foo", "bar" }).Should().Be("f__");
+        var hint = tracker.GetHint(new[] { "foo", "bar" });
+        hint.Should().NotBeNull();
+        hint!.Should().HaveLength(3);
+        hint!.Count(c => c != '_').Should().Be(1);
     }
 }

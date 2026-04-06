@@ -38,7 +38,7 @@ public class LetterHintTracker
             }
             else if (_bonusRevealDecider())
             {
-                RevealLeftmostUnrevealed(lockedOption);
+                RevealRandomUnrevealed(lockedOption);
             }
         }
         else
@@ -69,9 +69,9 @@ public class LetterHintTracker
             }
             else if (_bonusRevealDecider())
             {
-                // Gate closed and not locked — lock to primary option (index 0) and reveal leftmost char
+                // Gate closed and not locked — lock to primary option (index 0) and reveal a random char
                 _lockedOptionIndex = 0;
-                RevealLeftmostUnrevealed(options[0].Trim().ToLowerInvariant());
+                RevealRandomUnrevealed(options[0].Trim().ToLowerInvariant());
             }
         }
     }
@@ -107,17 +107,15 @@ public class LetterHintTracker
                 _revealMask[i] |= matched[i];
     }
 
-    private void RevealLeftmostUnrevealed(string lowerOption)
+    private void RevealRandomUnrevealed(string lowerOption)
     {
         _revealMask ??= new bool[lowerOption.Length];
+        var candidates = new List<int>();
         for (int i = 0; i < lowerOption.Length; i++)
-        {
             if (!_revealMask[i] && lowerOption[i] != ' ')
-            {
-                _revealMask[i] = true;
-                break;
-            }
-        }
+                candidates.Add(i);
+        if (candidates.Count > 0)
+            _revealMask[candidates[Random.Shared.Next(candidates.Count)]] = true;
     }
 
     private bool HasNewReveals(bool[] matched)
