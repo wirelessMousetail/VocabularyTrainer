@@ -114,7 +114,7 @@ public class LetterHintTracker
         for (int i = 0; i < lowerOption.Length; i++)
             if (!_revealMask[i] && lowerOption[i] != ' ')
                 candidates.Add(i);
-        if (candidates.Count > 0)
+        if (candidates.Count > 1)
             _revealMask[candidates[Random.Shared.Next(candidates.Count)]] = true;
     }
 

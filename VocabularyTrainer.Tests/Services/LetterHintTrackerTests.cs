@@ -62,26 +62,25 @@ public class LetterHintTrackerTests
     }
 
     [Fact]
-    public void BonusReveal_GateClosed_WhenLocked_RevealsOneUnrevealedNonSpaceChar()
+    public void BonusReveal_GateClosed_WhenLocked_LastCharProtected()
     {
-        // First update opens gate (locks to "bezetten"); second update closes gate but
-        // bonus fires, revealing the one remaining unrevealed non-space char.
+        // Gate opens on "bezeten" → "bezet_en" (1 unrevealed non-space char remains).
+        // Bonus fires on second attempt, but last char is protected — hint unchanged.
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
         tracker.Update("bezeten", new[] { "bezetten" }); // gate opens: "bezet_en"
-        tracker.Update("xy", new[] { "bezetten" });      // gate closed, locked, bonus=true: reveals the only '_' (index 5)
-        // Only one unrevealed candidate exists, so result is deterministic
-        tracker.GetHint(new[] { "bezetten" }).Should().Be("bezetten");
+        tracker.Update("xy", new[] { "bezetten" });      // gate closed, bonus=true, but only 1 candidate → no reveal
+        tracker.GetHint(new[] { "bezetten" }).Should().Be("bezet_en");
     }
 
     [Fact]
-    public void BonusReveal_SkipsAlreadyRevealedChars()
+    public void BonusReveal_SkipsAlreadyRevealedChars_AndProtectsLastChar()
     {
-        // Gate opens on "bekent" → "beken_"; then gate-closed attempt with bonus=true
-        // reveals the next unrevealed non-space char ("d" at index 5)
+        // Gate opens on "bekent" → "beken_" (1 unrevealed non-space char remains).
+        // Bonus fires but last char is protected — hint stays "beken_".
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
         tracker.Update("bekent", new[] { "bekend" }); // gate opens: "beken_"
-        tracker.Update("xy", new[] { "bekend" });     // gate closed, bonus=true: reveals "d"
-        tracker.GetHint(new[] { "bekend" }).Should().Be("bekend");
+        tracker.Update("xy", new[] { "bekend" });     // gate closed, bonus=true, but only 1 candidate → no reveal
+        tracker.GetHint(new[] { "bekend" }).Should().Be("beken_");
     }
 
     [Fact]
