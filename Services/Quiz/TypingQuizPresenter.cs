@@ -1,6 +1,8 @@
 using VocabularyTrainer.Models;
+using VocabularyTrainer.Services.Vocabulary;
+using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 /// <summary>
 /// Presenter for typing-mode quizzes where the user types a free-text answer.
@@ -8,14 +10,14 @@ namespace VocabularyTrainer.Services;
 /// </summary>
 public class TypingQuizPresenter : IQuizPresenter
 {
-    private readonly Quiz _quiz;
+    private readonly QuizModel _quiz;
     private readonly WordWeightStrategy _weightStrategy;
     private readonly WordListService _wordListService;
     private readonly LetterHintTracker? _hintTracker;
     private readonly IReadOnlyList<string> _options;
     private QuizResult _result = QuizResult.Pending;
 
-    public TypingQuizPresenter(Quiz quiz, WordWeightStrategy weightStrategy, WordListService wordListService, bool revealLetters)
+    public TypingQuizPresenter(QuizModel quiz, WordWeightStrategy weightStrategy, WordListService wordListService, bool revealLetters)
     {
         _quiz = quiz;
         _weightStrategy = weightStrategy;

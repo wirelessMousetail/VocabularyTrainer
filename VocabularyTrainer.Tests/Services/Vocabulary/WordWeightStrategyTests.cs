@@ -1,9 +1,9 @@
 using FluentAssertions;
-using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Vocabulary;
 using VocabularyTrainer.Tests.Fixtures;
 using Xunit;
 
-namespace VocabularyTrainer.Tests.Services;
+namespace VocabularyTrainer.Tests.Services.Vocabulary;
 
 public class WordWeightStrategyTests
 {

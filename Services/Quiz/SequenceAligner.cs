@@ -1,4 +1,4 @@
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 /// <summary>
 /// Pure sequence alignment: aligns <c>typed</c> against <c>correct</c> using edit distance,

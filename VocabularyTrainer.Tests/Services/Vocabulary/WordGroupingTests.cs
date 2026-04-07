@@ -1,9 +1,9 @@
 using FluentAssertions;
 using VocabularyTrainer.Models;
-using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Vocabulary;
 using Xunit;
 
-namespace VocabularyTrainer.Tests.Services;
+namespace VocabularyTrainer.Tests.Services.Vocabulary;
 
 public class WordGroupingTests
 {

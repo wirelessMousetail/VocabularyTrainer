@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Quiz;
 using Timer = System.Timers.Timer;
 
 namespace VocabularyTrainer.ViewModels;

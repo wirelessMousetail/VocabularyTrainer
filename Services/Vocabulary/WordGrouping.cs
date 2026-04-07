@@ -1,6 +1,6 @@
-﻿using VocabularyTrainer.Models;
+using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Vocabulary;
 
 /// <summary>
 /// Static utility for detecting grammatical word groups based on Dutch language patterns.

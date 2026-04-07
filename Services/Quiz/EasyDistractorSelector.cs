@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 /// <summary>
 /// Selects distractors randomly from the candidate pool.

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Vocabulary;
 
 /// <summary>
 /// Implements the weight management algorithm for vocabulary learning.

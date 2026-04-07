@@ -1,4 +1,4 @@
-﻿namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 public interface IQuizPresenter
 {

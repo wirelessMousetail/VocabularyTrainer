@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using VocabularyTrainer.Models;
+using VocabularyTrainer.Services.Vocabulary;
+using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 /// <summary>
 /// Service responsible for creating quiz sessions with weight-based word selection.
@@ -77,7 +79,7 @@ public class QuizService
     /// <summary>
     /// Creates a typing quiz (no options) for the specified word and direction.
     /// </summary>
-    private Quiz CreateTypingQuiz(QuizDirection direction, WordEntry correct)
+    private QuizModel CreateTypingQuiz(QuizDirection direction, WordEntry correct)
     {
         bool isReversed = direction switch
         {
@@ -87,7 +89,7 @@ public class QuizService
             _ => false
         };
 
-        return new Quiz(
+        return new QuizModel(
             isReversed ? correct.Answer : correct.Question,
             isReversed ? correct.Question : correct.Answer,
             [],
@@ -102,8 +104,8 @@ public class QuizService
     /// </summary>
     /// <param name="optionCount">Number of multiple-choice options.</param>
     /// <param name="direction">Quiz direction (Direct, Reverse, or Random).</param>
-    /// <returns>A configured <see cref="Quiz"/> instance.</returns>
-    private Quiz CreateQuiz(int optionCount, QuizDirection direction, WordEntry correct)
+    /// <returns>A configured <see cref="QuizModel"/> instance.</returns>
+    private QuizModel CreateQuiz(int optionCount, QuizDirection direction, WordEntry correct)
     {
         // Determine actual direction for this quiz
         bool isReversed = direction switch
@@ -130,7 +132,7 @@ public class QuizService
         foreach (var w in selected)
             optionEntries.TryAdd(isReversed ? w.Question : w.Answer, w);
 
-        return new Quiz(
+        return new QuizModel(
             isReversed ? correct.Answer : correct.Question,
             isReversed ? correct.Question : correct.Answer,
             options,

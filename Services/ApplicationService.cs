@@ -1,5 +1,7 @@
 using System;
 using VocabularyTrainer.Models;
+using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Vocabulary;
 
 namespace VocabularyTrainer.Services;
 

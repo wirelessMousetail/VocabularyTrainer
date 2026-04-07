@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Vocabulary;
 
 public class CsvWordRepository
 {

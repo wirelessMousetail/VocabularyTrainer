@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Quiz;
 using VocabularyTrainer.ViewModels;
 using VocabularyTrainer.Views;
 

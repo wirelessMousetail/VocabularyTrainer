@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using VocabularyTrainer.Models;
-using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Vocabulary;
 using VocabularyTrainer.Tests.Fixtures;
 using Xunit;
+using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Tests.Services;
+namespace VocabularyTrainer.Tests.Services.Quiz;
 
 public class TypingQuizPresenterTests : IDisposable
 {
@@ -144,9 +146,9 @@ public class TypingQuizPresenterTests : IDisposable
         return new TypingQuizPresenter(quiz, _strategy, _wordListService, revealLetters);
     }
 
-    private static Quiz MakeTypingQuiz(string question, string correctAnswer, WordEntry? word = null)
+    private static QuizModel MakeTypingQuiz(string question, string correctAnswer, WordEntry? word = null)
     {
         word ??= WordEntryFixture.Make(question, correctAnswer);
-        return new Quiz(question, correctAnswer, [], word, new Dictionary<string, WordEntry>());
+        return new QuizModel(question, correctAnswer, [], word, new Dictionary<string, WordEntry>());
     }
 }

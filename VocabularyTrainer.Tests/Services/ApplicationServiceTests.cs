@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using FluentAssertions;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Vocabulary;
 using VocabularyTrainer.Tests.Fakes;
 using VocabularyTrainer.Tests.Fixtures;
 using Xunit;

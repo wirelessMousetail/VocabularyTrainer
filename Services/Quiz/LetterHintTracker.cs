@@ -1,4 +1,4 @@
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 /// <summary>
 /// Tracks which letters of the correct answer have been revealed based on the user's typed attempts.

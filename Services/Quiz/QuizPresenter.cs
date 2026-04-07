@@ -1,17 +1,19 @@
-﻿using VocabularyTrainer.Models;
+using VocabularyTrainer.Models;
+using VocabularyTrainer.Services.Vocabulary;
+using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 public class QuizPresenter : IQuizPresenter
 {
-    private readonly Quiz _quiz;
+    private readonly QuizModel _quiz;
     private readonly WordWeightStrategy _weightStrategy;
     private readonly WordListService _wordListService;
     private readonly int? _maxAttempts;
     private int _attemptCount;
     private QuizResult _result = QuizResult.Pending;
 
-    public QuizPresenter(Quiz quiz, WordWeightStrategy weightStrategy, WordListService wordListService, int? maxAttempts = null)
+    public QuizPresenter(QuizModel quiz, WordWeightStrategy weightStrategy, WordListService wordListService, int? maxAttempts = null)
     {
         _quiz = quiz;
         _weightStrategy = weightStrategy;
@@ -57,6 +59,6 @@ public class QuizPresenter : IQuizPresenter
     }
 
     public QuizResult GetResult() => _result;
-    
+
     public string GetCorrectAnswer() => _quiz.CorrectAnswer;
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Quiz;
 
 /// <summary>
 /// Selects distractors that are visually similar to the correct word in the source language (Dutch).

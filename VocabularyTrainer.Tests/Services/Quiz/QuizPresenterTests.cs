@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using VocabularyTrainer.Models;
-using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Vocabulary;
 using VocabularyTrainer.Tests.Fixtures;
 using Xunit;
+using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Tests.Services;
+namespace VocabularyTrainer.Tests.Services.Quiz;
 
 public class QuizPresenterTests : IDisposable
 {
@@ -151,7 +153,7 @@ public class QuizPresenterTests : IDisposable
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private (QuizPresenter presenter, Quiz quiz) MakePresenter(
+    private (QuizPresenter presenter, QuizModel quiz) MakePresenter(
         string correctAnswer, int? maxAttempts = null)
     {
         var word = WordEntryFixture.Make("hond", correctAnswer);
@@ -160,7 +162,7 @@ public class QuizPresenterTests : IDisposable
         return (presenter, quiz);
     }
 
-    private static Quiz MakeQuiz(
+    private static QuizModel MakeQuiz(
         string question,
         string correctAnswer,
         IEnumerable<string> otherOptions,
@@ -169,7 +171,7 @@ public class QuizPresenterTests : IDisposable
     {
         word ??= WordEntryFixture.Make(question, correctAnswer);
         var options = otherOptions.Append(correctAnswer).ToList();
-        return new Quiz(question, correctAnswer, options, word,
+        return new QuizModel(question, correctAnswer, options, word,
             optionEntries ?? new Dictionary<string, WordEntry>());
     }
 }

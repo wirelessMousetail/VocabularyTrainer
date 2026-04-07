@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services;
+namespace VocabularyTrainer.Services.Vocabulary;
 
 /// <summary>
 /// Service responsible for managing vocabulary word lists, including loading, merging, and persisting word data.
@@ -117,7 +117,7 @@ public class WordListService
 
     private void SaveManaged()
     {
-        var lines = _words.Select(w => 
+        var lines = _words.Select(w =>
             $"{w.Question};{w.Answer};{w.WeightData.Weight};{w.WeightData.CorrectStreak};{w.Group}");
         File.WriteAllLines(_managedPath, lines);
     }
