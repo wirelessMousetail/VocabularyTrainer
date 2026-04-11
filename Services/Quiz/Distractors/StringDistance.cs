@@ -1,7 +1,14 @@
 namespace VocabularyTrainer.Services.Quiz.Distractors;
 
+/// <summary>
+/// Static utility methods for computing string distance and similarity metrics.
+/// </summary>
 public static class StringDistance
 {
+    /// <summary>
+    /// Computes the Levenshtein edit distance between two strings (minimum insertions, deletions, and substitutions).
+    /// </summary>
+    /// <returns>The number of single-character edits required to transform <paramref name="a"/> into <paramref name="b"/>.</returns>
     public static int Levenshtein(string a, string b)
     {
         if (a.Length == 0) return b.Length;
@@ -27,6 +34,11 @@ public static class StringDistance
         return prev[b.Length];
     }
 
+    /// <summary>
+    /// Computes the Levenshtein edit distance normalized to [0, 1] by dividing by the length of the longer string.
+    /// Returns 0.0 when both strings are empty.
+    /// </summary>
+    /// <returns>A value in [0, 1] where 0.0 means identical and 1.0 means completely different.</returns>
     public static double NormalizedLevenshtein(string a, string b)
     {
         int maxLen = Math.Max(a.Length, b.Length);

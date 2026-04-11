@@ -7,8 +7,7 @@ using VocabularyTrainer.Services.Vocabulary;
 namespace VocabularyTrainer.Services;
 
 /// <summary>
-/// Service responsible for orchestrating the application lifecycle, quiz scheduling, and coordination between services.
-/// Replaces the Windows Forms ApplicationContext with a cross-platform implementation.
+/// Orchestrates the application lifecycle, quiz scheduling, and coordination between all services.
 /// </summary>
 public class ApplicationService : IDisposable
 {
