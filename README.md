@@ -248,7 +248,9 @@ If you want to backup/copy your progress and options, you need to save these two
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions are welcome. Please open an issue first — bug reports should describe what happened and how to reproduce it; feature requests should explain the problem being solved. Wait for maintainer sign-off before writing code.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full process, code requirements, and build/test commands.
 
 ## License
 
