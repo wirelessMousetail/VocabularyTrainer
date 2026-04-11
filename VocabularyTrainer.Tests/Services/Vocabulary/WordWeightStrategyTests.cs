@@ -20,20 +20,17 @@ public class WordWeightStrategyTests
         word.WeightData.CorrectStreak.Should().Be(0);
     }
 
-    [Fact]
-    public void RegisterMistake_AtZeroWeight_SetsWeightToOne()
+    [Theory]
+    [InlineData(0,     1)]  // 0×3+1
+    [InlineData(1,     4)]  // 1×3+1
+    [InlineData(10,     31)]  // 10×3+1
+    [InlineData(50,  100)]  // 50×3+1=151 → capped
+    public void RegisterMistake_UpdatesWeight(int initialWeight, int expectedWeight)
     {
-        var word = WordEntryFixture.Make("lopen", "to walk", weight: 0);
+        var word = WordEntryFixture.Make("lopen", "to walk", weight: initialWeight);
         _strategy.RegisterMistake(word);
-        word.WeightData.Weight.Should().Be(1); // 0×3+1
-    }
-
-    [Fact]
-    public void RegisterMistake_CapsWeightAt100()
-    {
-        var word = WordEntryFixture.Make("lopen", "to walk", weight: 50);
-        _strategy.RegisterMistake(word);
-        word.WeightData.Weight.Should().Be(100); // 50×3+1=151 → capped
+        word.WeightData.Weight.Should().Be(expectedWeight);
+        word.WeightData.CorrectStreak.Should().Be(0);
     }
 
     // ── RegisterCorrect – linear branch (streak after increment ≤ 5) ─────────
@@ -59,21 +56,14 @@ public class WordWeightStrategyTests
     [InlineData(5,  50, 25)] // streak 5→6, 50×0.5
     [InlineData(6, 100, 50)] // streak 6→7, already above threshold
     [InlineData(9,  40, 20)] // streak 9→10, high streak
-    public void RegisterCorrect_ExponentialDecrease_WhenStreakExceedsThreshold(
-        int initialStreak, int initialWeight, int expectedWeight)
+    [InlineData(5,   0,  0)] // weight already 0, streak 5 — stays at 0
+    [InlineData(0,   0,  0)] // weight already 0, steak 0 — stays at 0
+    public void RegisterCorrect_ExponentialDecrease(int initialStreak, int initialWeight, int expectedWeight)
     {
         var word = WordEntryFixture.Make("lopen", "to walk", weight: initialWeight, streak: initialStreak);
         _strategy.RegisterCorrect(word);
         word.WeightData.Weight.Should().Be(expectedWeight);
         word.WeightData.CorrectStreak.Should().Be(initialStreak + 1);
-    }
-
-    [Fact]
-    public void RegisterCorrect_ExponentialDecrease_DoesNotGoBelowZero()
-    {
-        var word = WordEntryFixture.Make("lopen", "to walk", weight: 0, streak: 5);
-        _strategy.RegisterCorrect(word);
-        word.WeightData.Weight.Should().Be(0);
     }
 
     // ── CalculateTickets ──────────────────────────────────────────────────────
