@@ -6,19 +6,10 @@ namespace VocabularyTrainer.Tests.Services.Quiz.Distractors;
 
 public class StringDistanceTests
 {
-    [Fact]
-    public void Levenshtein_IdenticalStrings_ReturnsZero() =>
-        StringDistance.Levenshtein("dog", "dog").Should().Be(0);
-
-    [Fact]
-    public void Levenshtein_EmptyAndNonEmpty_ReturnsLength() =>
-        StringDistance.Levenshtein("", "dog").Should().Be(3);
-
-    [Fact]
-    public void Levenshtein_NonEmptyAndEmpty_ReturnsLength() =>
-        StringDistance.Levenshtein("dog", "").Should().Be(3);
-
     [Theory]
+    [InlineData("dog", "dog", 0)]
+    [InlineData("",    "dog", 3)]
+    [InlineData("dog", "",   3)]
     [InlineData("dog", "log", 1)]
     [InlineData("dog", "cat", 3)]
     [InlineData("kitten", "sitting", 3)]
@@ -27,33 +18,16 @@ public class StringDistanceTests
 
     // ── NormalizedLevenshtein ─────────────────────────────────────────────────
 
-    [Fact]
-    public void NormalizedLevenshtein_IdenticalStrings_ReturnsZero() =>
-        StringDistance.NormalizedLevenshtein("dog", "dog").Should().Be(0.0);
-
-    [Fact]
-    public void NormalizedLevenshtein_BothEmpty_ReturnsZero() =>
-        StringDistance.NormalizedLevenshtein("", "").Should().Be(0.0);
-
-    [Fact]
-    public void NormalizedLevenshtein_EmptyAndNonEmpty_ReturnsOne() =>
-        StringDistance.NormalizedLevenshtein("", "dog").Should().Be(1.0);
-
     [Theory]
+    [InlineData("dog", "dog", 0.0)]
+    [InlineData("",    "",   0.0)]
+    [InlineData("",    "dog", 1.0)]
     [InlineData("hond", "bond", 0.25)]  // 1 substitution / 4
     [InlineData("dog",  "cat",  1.0)]   // 3 substitutions / 3
     public void NormalizedLevenshtein_KnownPairs(string a, string b, double expected) =>
         StringDistance.NormalizedLevenshtein(a, b).Should().BeApproximately(expected, 0.001);
 
     // ── JaroWinkler ───────────────────────────────────────────────────────────
-
-    [Fact]
-    public void JaroWinkler_IdenticalStrings_ReturnsOne() =>
-        StringDistance.JaroWinkler("hond", "hond").Should().Be(1.0);
-
-    [Fact]
-    public void JaroWinkler_EmptyStrings_ReturnsZero() =>
-        StringDistance.JaroWinkler("", "hond").Should().Be(0.0);
 
     [Fact]
     public void JaroWinkler_CompletelyDifferent_ReturnsLowScore() =>
@@ -69,6 +43,8 @@ public class StringDistanceTests
     }
 
     [Theory]
+    [InlineData("hond", "hond", 1.0)]
+    [InlineData("",     "hond", 0.0)]
     [InlineData("hond", "bond", 0.833)]  // 3/4 chars match, no common prefix
     [InlineData("hond", "houd", 0.867)]  // 3/4 chars match + "ho" prefix bonus
     public void JaroWinkler_KnownPairs(string a, string b, double expected) =>
