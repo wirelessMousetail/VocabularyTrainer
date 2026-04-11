@@ -1,6 +1,7 @@
 using FluentAssertions;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Quiz.Distractors;
 using VocabularyTrainer.Services.Vocabulary;
 using VocabularyTrainer.Tests.Fixtures;
 using Xunit;

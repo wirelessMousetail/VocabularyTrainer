@@ -1,8 +1,8 @@
 using FluentAssertions;
-using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Quiz.Distractors;
 using Xunit;
 
-namespace VocabularyTrainer.Tests.Services.Quiz;
+namespace VocabularyTrainer.Tests.Services.Quiz.Distractors;
 
 public class StringDistanceTests
 {

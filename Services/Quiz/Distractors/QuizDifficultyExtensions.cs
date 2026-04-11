@@ -1,6 +1,6 @@
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services.Quiz;
+namespace VocabularyTrainer.Services.Quiz.Distractors;
 
 public static class QuizDifficultyExtensions
 {

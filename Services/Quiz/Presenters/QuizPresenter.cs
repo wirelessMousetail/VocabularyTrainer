@@ -2,7 +2,7 @@ using VocabularyTrainer.Models;
 using VocabularyTrainer.Services.Vocabulary;
 using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Services.Quiz;
+namespace VocabularyTrainer.Services.Quiz.Presenters;
 
 public class QuizPresenter : IQuizPresenter
 {

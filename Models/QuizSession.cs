@@ -1,4 +1,4 @@
-﻿using VocabularyTrainer.Services.Quiz;
+﻿using VocabularyTrainer.Services.Quiz.Presenters;
 
 namespace VocabularyTrainer.Models;
 

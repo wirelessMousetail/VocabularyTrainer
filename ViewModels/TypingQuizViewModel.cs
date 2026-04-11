@@ -1,7 +1,7 @@
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
-using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Quiz.Presenters;
 using Timer = System.Timers.Timer;
 
 namespace VocabularyTrainer.ViewModels;

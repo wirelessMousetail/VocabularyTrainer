@@ -1,4 +1,4 @@
-namespace VocabularyTrainer.Services.Quiz;
+namespace VocabularyTrainer.Services.Quiz.Distractors;
 
 public static class StringDistance
 {

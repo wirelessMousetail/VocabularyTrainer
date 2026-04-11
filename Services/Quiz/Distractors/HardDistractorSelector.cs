@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services.Quiz;
+namespace VocabularyTrainer.Services.Quiz.Distractors;
 
 /// <summary>
 /// Selects distractors that are visually similar to the correct word in the source language (Dutch).

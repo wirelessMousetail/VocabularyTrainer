@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using VocabularyTrainer.Models;
 
-namespace VocabularyTrainer.Services.Quiz;
+namespace VocabularyTrainer.Services.Quiz.Distractors;
 
 /// <summary>
 /// Selects distractor words for a quiz from a filtered candidate pool.

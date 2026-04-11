@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using VocabularyTrainer.Models;
-using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Quiz.Presenters;
 using VocabularyTrainer.Services.Vocabulary;
 using VocabularyTrainer.Tests.Fixtures;
 using Xunit;
 using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Tests.Services.Quiz;
+namespace VocabularyTrainer.Tests.Services.Quiz.Presenters;
 
 public class TypingQuizPresenterTests : IDisposable
 {

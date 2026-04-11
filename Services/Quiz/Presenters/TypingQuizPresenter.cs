@@ -2,7 +2,7 @@ using VocabularyTrainer.Models;
 using VocabularyTrainer.Services.Vocabulary;
 using QuizModel = VocabularyTrainer.Models.Quiz;
 
-namespace VocabularyTrainer.Services.Quiz;
+namespace VocabularyTrainer.Services.Quiz.Presenters;
 
 /// <summary>
 /// Presenter for typing-mode quizzes where the user types a free-text answer.

@@ -1,8 +1,8 @@
 using FluentAssertions;
-using VocabularyTrainer.Services.Quiz;
+using VocabularyTrainer.Services.Quiz.Presenters;
 using Xunit;
 
-namespace VocabularyTrainer.Tests.Services.Quiz;
+namespace VocabularyTrainer.Tests.Services.Quiz.Presenters;
 
 public class SequenceAlignerTests
 {
