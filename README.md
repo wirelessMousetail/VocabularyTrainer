@@ -1,6 +1,6 @@
 # VocabularyTrainer
 
-A Windows desktop application for learning vocabulary through periodic quizzes. The app shows quizzes at configurable intervals and automatically increases the frequency of words you get wrong, helping you focus on difficult vocabulary. Was created for learning Dutch, but may work with any language pair if you replace the word list CSV file with your own. Be aware: word group auto recognition is Dutch-specific.
+A Windows desktop application for learning vocabulary through periodic quizzes. The app shows quizzes at configurable intervals and automatically increases the frequency of words you get wrong, helping you focus on difficult vocabulary. Was created for learning Dutch, but may work with any language pair if you replace the word list CSV file with your own. Be aware: word group auto recognition is Dutch-specific. This project was developed with the assistance of LLMs.
 
 ## Features
 
@@ -248,7 +248,9 @@ If you want to backup/copy your progress and options, you need to save these two
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions are welcome. Please open an issue first — bug reports should describe what happened and how to reproduce it; feature requests should explain the problem being solved. Wait for maintainer sign-off before writing code.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full process, code requirements, and build/test commands.
 
 ## License
 

@@ -7,11 +7,16 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
+using VocabularyTrainer.Services.Quiz.Distractors;
 using VocabularyTrainer.ViewModels;
 using VocabularyTrainer.Views;
 
 namespace VocabularyTrainer;
 
+/// <summary>
+/// Application entry point. Initializes all services and wires them to views by subscribing to
+/// <see cref="Services.ApplicationService"/> events and creating windows on the UI thread.
+/// </summary>
 public partial class App : Application
 {
     private ApplicationService? _applicationService;
