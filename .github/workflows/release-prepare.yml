@@ -19,6 +19,14 @@ jobs:
         with:
           ref: main
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run tests
+        run: dotnet test
+
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
