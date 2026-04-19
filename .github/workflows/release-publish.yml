@@ -9,6 +9,10 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-publish
+  cancel-in-progress: false
+
 jobs:
   publish:
     if: >
@@ -16,7 +20,7 @@ jobs:
       startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: main
           fetch-depth: 0
@@ -29,13 +33,20 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Check tag does not exist
+        run: |
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Error: tag ${{ steps.version.outputs.tag }} already exists"
+            exit 1
+          fi
+
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
         with:
           dotnet-version: '8.0.x'
 
