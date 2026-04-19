@@ -1,0 +1,51 @@
+name: Release Prepare
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.2.0, no v prefix)'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create release branch
+        run: git checkout -b release/v${{ inputs.version }}
+
+      - name: Update CHANGELOG
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          sed -i "s/## \[Unreleased\]/## [${{ inputs.version }}] - $DATE/" CHANGELOG.md
+
+      - name: Commit changelog update
+        run: |
+          git add CHANGELOG.md
+          git commit -m "chore: prepare release v${{ inputs.version }}"
+
+      - name: Push release branch
+        run: git push origin release/v${{ inputs.version }}
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head release/v${{ inputs.version }} \
+            --title "Release v${{ inputs.version }}" \
+            --body "Automated release preparation for v${{ inputs.version }}."

@@ -1,0 +1,91 @@
+name: Release Publish
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH#release/v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        run: |
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish Windows artifact
+        run: |
+          dotnet publish -r win-x64 --self-contained true -c Release \
+            -p:PublishSingleFile=true -o ./publish
+
+      - name: Package artifact
+        run: |
+          cd publish
+          zip -r ../VocabularyTrainer-${{ steps.version.outputs.tag }}-win-x64.zip .
+
+      - name: Extract release notes
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Extract lines between this version's heading and the next ## heading
+          NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
+          # Write to file to preserve newlines
+          echo "$NOTES" > release_notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ steps.version.outputs.tag }} \
+            --title "${{ steps.version.outputs.tag }}" \
+            --notes-file release_notes.md \
+            VocabularyTrainer-${{ steps.version.outputs.tag }}-win-x64.zip
+
+      - name: Create backmerge PR to restore [Unreleased]
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="post-release/${{ steps.version.outputs.tag }}"
+          git checkout -b "$BRANCH"
+          # Prepend [Unreleased] section
+          printf '## [Unreleased]\n\n' | cat - CHANGELOG.md > CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+          git add CHANGELOG.md
+          git commit -m "chore: restore [Unreleased] section after ${{ steps.version.outputs.tag }}"
+          git push origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Post-release: restore [Unreleased] after ${{ steps.version.outputs.tag }}" \
+            --body "Restores the \`## [Unreleased]\` section to CHANGELOG.md after the ${{ steps.version.outputs.tag }} release."
