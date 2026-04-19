@@ -39,6 +39,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Run tests
+        run: dotnet test
+
       - name: Publish Windows artifact
         run: |
           dotnet publish -r win-x64 --self-contained true -c Release \
@@ -78,9 +81,9 @@ jobs:
         run: |
           BRANCH="post-release/${{ steps.version.outputs.tag }}"
           git checkout -b "$BRANCH"
-          # Prepend [Unreleased] section
-          printf '## [Unreleased]\n\n' | cat - CHANGELOG.md > CHANGELOG.tmp
-          mv CHANGELOG.tmp CHANGELOG.md
+          # Insert [Unreleased] section before the versioned heading
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/^## \[$VERSION\]/## [Unreleased]\n\n## [$VERSION]/" CHANGELOG.md
           git add CHANGELOG.md
           git commit -m "chore: restore [Unreleased] section after ${{ steps.version.outputs.tag }}"
           git push origin "$BRANCH"
