@@ -8,65 +8,27 @@ public class AnswerParserTests
 {
     // ── Canonical ─────────────────────────────────────────────────────────────
 
-    [Fact]
-    public void Canonical_NoBrackets_ReturnsTrimmed()
-    {
-        AnswerParser.Canonical("  hello  ").Should().Be("hello");
-    }
-
-    [Fact]
-    public void Canonical_WithBrackets_RemovesBracketsAndTrims()
-    {
-        AnswerParser.Canonical("the appointment, (but also:) the agreement")
-            .Should().Be("the appointment, the agreement");
-    }
-
-    [Fact]
-    public void Canonical_BracketsWithCommaInside_StripsWholeGroup()
-    {
-        AnswerParser.Canonical("to pass on (передать, например документы)")
-            .Should().Be("to pass on");
-    }
-
-    [Fact]
-    public void Canonical_MultipleBrackets()
-    {
-        AnswerParser.Canonical("foo (bar) baz (qux)")
-            .Should().Be("foo baz");
-    }
+    [Theory]
+    [InlineData("  hello  ", "hello")]
+    [InlineData("the appointment, (but also:) the agreement", "the appointment, the agreement")]
+    [InlineData("to pass on (something, like docs)", "to pass on")]
+    [InlineData("foo (bar) baz (qux)", "foo baz")]
+    public void Canonical(string input, string expected) =>
+        AnswerParser.Canonical(input).Should().Be(expected);
 
     // ── Options ───────────────────────────────────────────────────────────────
 
-    [Fact]
-    public void Options_SingleOption_ReturnsList()
+    public static TheoryData<string, string[]> OptionsData => new()
     {
-        AnswerParser.Options("agree").Should().Equal("agree");
-    }
+        { "agree",                                              new[] { "agree" } },
+        { "the appointment, the agreement",                     new[] { "the appointment", "the agreement" } },
+        { "the appointment, (but also:) the agreement",         new[] { "the appointment", "the agreement" } },
+        { "to pass on (like, for example, documents)",          new[] { "to pass on" } },
+        { "foo, , bar",                                         new[] { "foo", "bar" } },
+    };
 
-    [Fact]
-    public void Options_MultipleOptions_SplitsOnComma()
-    {
-        AnswerParser.Options("the appointment, the agreement")
-            .Should().Equal("the appointment", "the agreement");
-    }
-
-    [Fact]
-    public void Options_BracketsStrippedBeforeSplit()
-    {
-        AnswerParser.Options("the appointment, (but also:) the agreement")
-            .Should().Equal("the appointment", "the agreement");
-    }
-
-    [Fact]
-    public void Options_BracketWithCommaInside_NotSplit()
-    {
-        AnswerParser.Options("to pass on (передать, например документы)")
-            .Should().Equal("to pass on");
-    }
-
-    [Fact]
-    public void Options_EmptyPartsDropped()
-    {
-        AnswerParser.Options("foo, , bar").Should().Equal("foo", "bar");
-    }
+    [Theory]
+    [MemberData(nameof(OptionsData))]
+    public void Options(string input, string[] expected) =>
+        AnswerParser.Options(input).Should().Equal(expected);
 }

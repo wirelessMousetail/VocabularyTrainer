@@ -61,26 +61,16 @@ public class LetterHintTrackerTests
         hint!.Count(c => c != '_').Should().Be(1);
     }
 
-    [Fact]
-    public void BonusReveal_GateClosed_WhenLocked_LastCharProtected()
+    [Theory]
+    [InlineData("bezeten", "bezetten", "bezet_en")]  // only '_' gap char remains; protected
+    [InlineData("bekent",  "bekend",   "beken_")]    // last char remains protected
+    public void BonusReveal_LastCharProtected_HintUnchanged(
+        string firstTyped, string correct, string expectedHint)
     {
-        // Gate opens on "bezeten" → "bezet_en" (1 unrevealed non-space char remains).
-        // Bonus fires on second attempt, but last char is protected — hint unchanged.
         var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
-        tracker.Update("bezeten", new[] { "bezetten" }); // gate opens: "bezet_en"
-        tracker.Update("xy", new[] { "bezetten" });      // gate closed, bonus=true, but only 1 candidate → no reveal
-        tracker.GetHint(new[] { "bezetten" }).Should().Be("bezet_en");
-    }
-
-    [Fact]
-    public void BonusReveal_SkipsAlreadyRevealedChars_AndProtectsLastChar()
-    {
-        // Gate opens on "bekent" → "beken_" (1 unrevealed non-space char remains).
-        // Bonus fires but last char is protected — hint stays "beken_".
-        var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
-        tracker.Update("bekent", new[] { "bekend" }); // gate opens: "beken_"
-        tracker.Update("xy", new[] { "bekend" });     // gate closed, bonus=true, but only 1 candidate → no reveal
-        tracker.GetHint(new[] { "bekend" }).Should().Be("beken_");
+        tracker.Update(firstTyped, new[] { correct });
+        tracker.Update("xy", new[] { correct });
+        tracker.GetHint(new[] { correct }).Should().Be(expectedHint);
     }
 
     [Fact]
@@ -126,7 +116,7 @@ public class LetterHintTrackerTests
         var firstHint = tracker.GetHint(options);
         firstHint.Should().NotBeNull();
         // Hint is from "appointment", not "agreement"
-        firstHint.Should().StartWith("a");
+        firstHint.Should().StartWith("app");
         firstHint!.Length.Should().Be("appointment".Length);
 
         // Now type the exact text of the second option — tracker must stay locked to "appointment"
