@@ -116,7 +116,7 @@ public class LetterHintTrackerTests
         var firstHint = tracker.GetHint(options);
         firstHint.Should().NotBeNull();
         // Hint is from "appointment", not "agreement"
-        firstHint.Should().StartWith("a");
+        firstHint.Should().StartWith("app");
         firstHint!.Length.Should().Be("appointment".Length);
 
         // Now type the exact text of the second option — tracker must stay locked to "appointment"
@@ -125,5 +125,16 @@ public class LetterHintTrackerTests
         tracker.GetHint(options)!.Length.Should().Be("appointment".Length);
     }
 
-
+    [Fact]
+    public void MultiOption_Bonus_WhenNotLocked_LocksToFirstOption()
+    {
+        // "xyz" matches neither "foo" nor "bar" well enough to open gate;
+        // bonus fires → locks to index 0 ("foo"), reveals one random char.
+        var tracker = new LetterHintTracker(bonusRevealDecider: () => true);
+        tracker.Update("xyz", new[] { "foo", "bar" });
+        var hint = tracker.GetHint(new[] { "foo", "bar" });
+        hint.Should().NotBeNull();
+        hint!.Should().HaveLength(3);
+        hint!.Count(c => c != '_').Should().Be(1);
+    }
 }
