@@ -6,6 +6,8 @@
 
 - **Parameterized unit tests** — converted repetitive `[Fact]` tests in `StringDistanceTests` and `AnswerParserTests` to `[Theory]` tests using `[InlineData]` and `[MemberData]`.
 
+## [1.0.0] - 2026-04-20
+
 ### Added
 
 - **Quiz direction** — configurable in the Options window: Direct (Dutch → English), Reverse (English → Dutch), or Random.
