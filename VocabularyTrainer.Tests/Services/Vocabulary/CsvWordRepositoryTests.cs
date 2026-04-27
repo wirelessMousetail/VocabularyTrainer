@@ -84,4 +84,28 @@ public class CsvWordRepositoryTests : IDisposable
         result[0].Question.Should().Be("de hond");
         result[0].Answer.Should().Be("dog");
     }
+
+    [Theory]
+    [InlineData("hond;собака")]                  // Cyrillic answer
+    [InlineData("hond;dog/kat")]                 // slash in answer
+    public void Load_ThrowsFormatException_ForInvalidAnswer(string line)
+    {
+        File.WriteAllLines(_tempFile, [line]);
+
+        var act = () => _repo.Load(_tempFile);
+
+        act.Should().Throw<FormatException>();
+    }
+
+    [Theory]
+    [InlineData("hond;dog")]
+    [InlineData("de boete;the fine (a penalty)")]
+    public void Load_AcceptsValidAnswer(string line)
+    {
+        File.WriteAllLines(_tempFile, [line]);
+
+        var act = () => _repo.Load(_tempFile);
+
+        act.Should().NotThrow();
+    }
 }
