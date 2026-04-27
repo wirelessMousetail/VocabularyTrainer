@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace VocabularyTrainer.Services.Quiz.Presenters;
+namespace VocabularyTrainer.Services.Utils;
 
 /// <summary>
 /// Pure static helpers for pre-processing answer strings before evaluation and hint display.
