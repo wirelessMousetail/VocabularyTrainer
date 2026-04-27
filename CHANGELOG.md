@@ -4,6 +4,9 @@
 
 ### Changed
 
+- **Word list sanitization** — fixed typos, removed Cyrillic text, corrected separators, and improved phrasing across `Data/words.csv`. MC quiz options and correct-answer labels now strip parenthetical context (`(...)`) before display, matching typing mode behaviour.
+- **Answer format validation** — `Data/words.csv` is validated on load; entries with Cyrillic characters, invalid punctuation, malformed brackets, or empty fields throw a `FormatException` at startup.
+- **Answer update on merge** — when `Data/words.csv` contains a corrected answer for an existing word, `LoadAndMerge()` now updates the stored answer while preserving weight, streak, and group.
 - **Parameterized unit tests** — converted repetitive `[Fact]` tests in `StringDistanceTests` and `AnswerParserTests` to `[Theory]` tests using `[InlineData]` and `[MemberData]`.
 
 ## [1.0.0] - 2026-04-20
