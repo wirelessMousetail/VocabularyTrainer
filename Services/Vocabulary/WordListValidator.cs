@@ -4,7 +4,7 @@ namespace VocabularyTrainer.Services.Vocabulary;
 
 public static class WordListValidator
 {
-    private static readonly Regex AllowedAnswerChars = new(@"^[a-zA-Z0-9 ,()'.\-:]+$", RegexOptions.Compiled);
+    private static readonly Regex AllowedAnswerChars = new(@"^[a-zA-Z0-9 ,()'.\-:!]+$", RegexOptions.Compiled);
 
     public static void Validate(string question, string answer, int lineNumber)
     {

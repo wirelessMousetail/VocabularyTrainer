@@ -116,6 +116,7 @@ public class CsvWordRepositoryTests : IDisposable
     [InlineData("zelfstandige;self-employed")]
     [InlineData("cao;collective labor agreement (c.l.a.)")]
     [InlineData("hond;dog (see also: kat)")]
+    [InlineData("pas op;be careful, look out!")]
     public void Load_AcceptsValidEntry(string line)
     {
         File.WriteAllLines(_tempFile, [line]);
