@@ -4,6 +4,10 @@ namespace VocabularyTrainer.Services.Vocabulary;
 
 public static class WordListValidator
 {
+    // Latin script only: ASCII letters/digits + accented Latin (U+00C0–U+00FF, excluding × and ÷)
+    private static readonly Regex AllowedQuestionChars = new(
+        @"^[a-zA-Z0-9À-ÖØ-öø-ÿ '\-]+$", RegexOptions.Compiled);
+
     private static readonly Regex AllowedAnswerChars = new(@"^[a-zA-Z0-9 ,'.\-!]+$", RegexOptions.Compiled);
     private static readonly Regex BracketGroup = new(@"\([^()]*\)", RegexOptions.Compiled);
 
@@ -15,7 +19,7 @@ public static class WordListValidator
 
     private static void ValidateQuestion(string question, int lineNumber)
     {
-        if (question.Any(c => c == ',' || c == '(' || c == ')'))
+        if (!AllowedQuestionChars.IsMatch(question))
             throw new FormatException($"Line {lineNumber}: question contains invalid characters: '{question}'");
     }
 

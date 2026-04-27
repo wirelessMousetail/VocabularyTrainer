@@ -105,6 +105,7 @@ public class CsvWordRepositoryTests : IDisposable
     [Theory]
     [InlineData("de hond, kat;dog")]     // comma in question
     [InlineData("de (hond);dog")]        // bracket in question
+    [InlineData("дом;house")]            // Cyrillic in question
     public void Load_ThrowsFormatException_ForInvalidQuestion(string line)
     {
         File.WriteAllLines(_tempFile, [line]);
@@ -122,6 +123,7 @@ public class CsvWordRepositoryTests : IDisposable
     [InlineData("hond;dog (see also: kat)")]
     [InlineData("pas op;be careful, look out!")]
     [InlineData("voorbereiden;to prepare (voor + bereiden)")]
+    [InlineData("de crèche;the nursery")]
     public void Load_AcceptsValidEntry(string line)
     {
         File.WriteAllLines(_tempFile, [line]);
