@@ -96,6 +96,46 @@ public class WordListServiceTests : IDisposable
         result.Should().HaveCount(1);
     }
 
+    // ── Answer update ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public void LoadAndMerge_UpdatesAnswer_WhenPrecompiledAnswerChanged()
+    {
+        File.WriteAllLines(_precompiledPath, ["hond;the dog"]);
+        File.WriteAllLines(_managedPath, ["hond;dog;50;3;Other"]);
+
+        var result = Build().LoadAndMerge();
+
+        result.Should().HaveCount(1);
+        result[0].Answer.Should().Be("the dog");
+    }
+
+    [Fact]
+    public void LoadAndMerge_PreservesProgress_WhenAnswerUpdated()
+    {
+        File.WriteAllLines(_precompiledPath, ["hond;the dog"]);
+        File.WriteAllLines(_managedPath, ["hond;dog;50;3;Other"]);
+
+        var result = Build().LoadAndMerge();
+
+        result[0].WeightData.Weight.Should().Be(50);
+        result[0].WeightData.CorrectStreak.Should().Be(3);
+        result[0].Group.Should().Be(WordGroup.Other);
+    }
+
+    [Fact]
+    public void LoadAndMerge_PersistsUpdatedAnswer_ToManagedFile()
+    {
+        File.WriteAllLines(_precompiledPath, ["hond;the dog"]);
+        File.WriteAllLines(_managedPath, ["hond;dog;50;3;Other"]);
+
+        Build().LoadAndMerge();
+
+        var reloaded = Build().LoadAndMerge();
+        reloaded[0].Answer.Should().Be("the dog");
+        reloaded[0].WeightData.Weight.Should().Be(50);
+    }
+
     // ── Partial columns ───────────────────────────────────────────────────────
 
     [Fact]
