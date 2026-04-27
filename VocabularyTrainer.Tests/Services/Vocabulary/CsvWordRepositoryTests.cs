@@ -86,9 +86,22 @@ public class CsvWordRepositoryTests : IDisposable
     }
 
     [Theory]
-    [InlineData("hond;собака")]                  // Cyrillic answer
-    [InlineData("hond;dog/kat")]                 // slash in answer
+    [InlineData("hond;собака")]          // Cyrillic in answer
+    [InlineData("hond;dog/kat")]         // slash in answer
+    [InlineData("hond;dog & cat")]       // ampersand in answer
     public void Load_ThrowsFormatException_ForInvalidAnswer(string line)
+    {
+        File.WriteAllLines(_tempFile, [line]);
+
+        var act = () => _repo.Load(_tempFile);
+
+        act.Should().Throw<FormatException>();
+    }
+
+    [Theory]
+    [InlineData("de hond, kat;dog")]     // comma in question
+    [InlineData("de (hond);dog")]        // bracket in question
+    public void Load_ThrowsFormatException_ForInvalidQuestion(string line)
     {
         File.WriteAllLines(_tempFile, [line]);
 
@@ -100,7 +113,9 @@ public class CsvWordRepositoryTests : IDisposable
     [Theory]
     [InlineData("hond;dog")]
     [InlineData("de boete;the fine (a penalty)")]
-    public void Load_AcceptsValidAnswer(string line)
+    [InlineData("zelfstandige;self-employed")]
+    [InlineData("cao;collective labor agreement (c.l.a.)")]
+    public void Load_AcceptsValidEntry(string line)
     {
         File.WriteAllLines(_tempFile, [line]);
 

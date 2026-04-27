@@ -35,7 +35,7 @@ public class CsvWordRepository
 
             var question = parts[0].Trim();
             var answer = parts[1].Trim();
-            WordListValidator.Validate(answer, i + 1);
+            WordListValidator.Validate(question, answer, i + 1);
             result.Add(new WordEntry(question, answer));
         }
 
