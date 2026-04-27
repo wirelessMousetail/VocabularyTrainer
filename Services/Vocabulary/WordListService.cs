@@ -48,10 +48,19 @@ public class WordListService
 
         _words = LoadManagedWords();
 
+        bool changed = UpdateChangedAnswers(precompiled);
+        changed |= AddNewWords(precompiled);
+
+        if (changed)
+            SaveManaged();
+
+        return _words;
+    }
+
+    private bool UpdateChangedAnswers(List<WordEntry> precompiled)
+    {
         var precompiledByQuestion = precompiled.ToDictionary(w => w.Question, w => w);
         bool changed = false;
-
-        // Update answers that changed in the precompiled list, preserving progress
         for (int i = 0; i < _words.Count; i++)
         {
             var managed = _words[i];
@@ -62,24 +71,22 @@ public class WordListService
                 changed = true;
             }
         }
+        return changed;
+    }
 
-        // Add words that are new in the precompiled list
-        var managedQuestions = _words.Select(w => w.Question).ToHashSet();
+    private bool AddNewWords(List<WordEntry> precompiled)
+    {
+        var existingQuestions = _words.Select(w => w.Question).ToHashSet();
         var newWords = precompiled
-            .Where(w => !managedQuestions.Contains(w.Question))
+            .Where(w => !existingQuestions.Contains(w.Question))
             .Select(ApplyInitialWeight)
             .ToList();
 
-        if (newWords.Count > 0)
-        {
-            _words.AddRange(newWords);
-            changed = true;
-        }
+        if (newWords.Count == 0)
+            return false;
 
-        if (changed)
-            SaveManaged();
-
-        return _words;
+        _words.AddRange(newWords);
+        return true;
     }
 
     private static WordEntry ApplyInitialWeight(WordEntry word)
