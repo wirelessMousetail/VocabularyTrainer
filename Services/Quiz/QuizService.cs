@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services.Quiz.Distractors;
 using VocabularyTrainer.Services.Quiz.Presenters;
@@ -92,8 +90,8 @@ public class QuizService
         };
 
         return new QuizModel(
-            isReversed ? correct.Answer : correct.Question,
-            isReversed ? correct.Question : correct.Answer,
+            isReversed ? correct.CanonicalAnswer : correct.Question,
+            isReversed ? correct.Question : correct.CanonicalAnswer,
             [],
             correct,
             new Dictionary<string, WordEntry>()
@@ -123,20 +121,20 @@ public class QuizService
         var selected = _selector.Select(pool, correct, optionCount - 1);
 
         var options = selected
-            .Select(w => isReversed ? w.Question : w.Answer)
+            .Select(w => isReversed ? w.Question : w.CanonicalAnswer)
             .Distinct()
             .ToList();
 
-        options.Add(isReversed ? correct.Question : correct.Answer);
+        options.Add(isReversed ? correct.Question : correct.CanonicalAnswer);
         options = options.OrderBy(_ => Random.Shared.Next()).ToList();
 
         var optionEntries = new Dictionary<string, WordEntry>();
         foreach (var w in selected)
-            optionEntries.TryAdd(isReversed ? w.Question : w.Answer, w);
+            optionEntries.TryAdd(isReversed ? w.Question : w.CanonicalAnswer, w);
 
         return new QuizModel(
-            isReversed ? correct.Answer : correct.Question,
-            isReversed ? correct.Question : correct.Answer,
+            isReversed ? correct.CanonicalAnswer : correct.Question,
+            isReversed ? correct.Question : correct.CanonicalAnswer,
             options,
             correct,
             optionEntries

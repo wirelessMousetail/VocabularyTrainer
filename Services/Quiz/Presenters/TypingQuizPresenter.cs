@@ -1,4 +1,4 @@
-using VocabularyTrainer.Models;
+using VocabularyTrainer.Services.Utils;
 using VocabularyTrainer.Services.Vocabulary;
 using QuizModel = VocabularyTrainer.Models.Quiz;
 
@@ -58,7 +58,7 @@ public class TypingQuizPresenter : IQuizPresenter
 
     public QuizResult GetResult() => _result;
 
-    public string GetCorrectAnswer() => AnswerParser.Canonical(_quiz.CorrectAnswer);
+    public string GetCorrectAnswer() => _quiz.CorrectAnswer;
 
     public string? GetHint() => _hintTracker?.GetHint(_options);
 

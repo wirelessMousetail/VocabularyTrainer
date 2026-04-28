@@ -199,6 +199,25 @@ public class QuizServiceTests
         }
     }
 
+    // ── MC canonicalization ───────────────────────────────────────────────────
+
+    [Fact]
+    public void McOptions_AreCanonical_BracketsStripped()
+    {
+        WordEntry[] words =
+        [
+            WordEntryFixture.Make("afsluiten",    "to close (e.g. the door)",  WordGroup.Verb),
+            WordEntryFixture.Make("openen",        "to open (a door)",          WordGroup.Verb),
+            WordEntryFixture.Make("sluiten",       "to shut (tight)",           WordGroup.Verb),
+            WordEntryFixture.Make("vergrendelen",  "to lock (up)",              WordGroup.Verb),
+            WordEntryFixture.Make("ontgrendelen",  "to unlock",                 WordGroup.Verb),
+        ];
+        var session = Build(words).CreateQuizSessionForWord(words[0], Config(), null!);
+
+        session.Quiz.Options.Should().AllSatisfy(o => o.Should().NotContain("("));
+        session.Quiz.CorrectAnswer.Should().Be("to close");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static WordEntry[] FiveDistinctWords() =>

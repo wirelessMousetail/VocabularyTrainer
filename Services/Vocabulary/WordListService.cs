@@ -48,20 +48,45 @@ public class WordListService
 
         _words = LoadManagedWords();
 
-        // Merge: add words from precompiled that don't exist in managed
-        var managedQuestions = _words.Select(w => w.Question).ToHashSet();
+        bool changed = UpdateChangedAnswers(precompiled);
+        changed |= AddNewWords(precompiled);
+
+        if (changed)
+            SaveManaged();
+
+        return _words;
+    }
+
+    private bool UpdateChangedAnswers(List<WordEntry> precompiled)
+    {
+        var precompiledByQuestion = precompiled.ToDictionary(w => w.Question, w => w);
+        bool changed = false;
+        for (int i = 0; i < _words.Count; i++)
+        {
+            var managed = _words[i];
+            if (precompiledByQuestion.TryGetValue(managed.Question, out var source) &&
+                !string.Equals(managed.Answer, source.Answer, StringComparison.Ordinal))
+            {
+                _words[i] = new WordEntry(managed.Question, source.Answer, managed.WeightData, managed.Group);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    private bool AddNewWords(List<WordEntry> precompiled)
+    {
+        var existingQuestions = _words.Select(w => w.Question).ToHashSet();
         var newWords = precompiled
-            .Where(w => !managedQuestions.Contains(w.Question))
+            .Where(w => !existingQuestions.Contains(w.Question))
             .Select(ApplyInitialWeight)
             .ToList();
 
-        if (newWords.Count > 0)
-        {
-            _words.AddRange(newWords);
-            SaveManaged();
-        }
+        if (newWords.Count == 0)
+            return false;
 
-        return _words;
+        _words.AddRange(newWords);
+        return true;
     }
 
     private static WordEntry ApplyInitialWeight(WordEntry word)

@@ -21,9 +21,11 @@ public class CsvWordRepository
     public List<WordEntry> Load(string path)
     {
         var result = new List<WordEntry>();
+        var lines = File.ReadAllLines(path);
 
-        foreach (var line in File.ReadAllLines(path))
+        for (int i = 0; i < lines.Length; i++)
         {
+            var line = lines[i];
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
@@ -31,7 +33,10 @@ public class CsvWordRepository
             if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
                 throw new FormatException($"Invalid line in CSV: '{line}'");
 
-            result.Add(new WordEntry(parts[0].Trim(), parts[1].Trim()));
+            var question = parts[0].Trim();
+            var answer = parts[1].Trim();
+            WordListValidator.Validate(question, answer, i + 1);
+            result.Add(new WordEntry(question, answer));
         }
 
         return result;

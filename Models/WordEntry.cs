@@ -1,4 +1,5 @@
-﻿using VocabularyTrainer.Services.Vocabulary;
+﻿using VocabularyTrainer.Services.Utils;
+using VocabularyTrainer.Services.Vocabulary;
 
 namespace VocabularyTrainer.Models;
 
@@ -13,9 +14,14 @@ public class WordEntry
     public string Question { get; }
 
     /// <summary>
-    /// Gets the answer translation 
+    /// Gets the answer translation
     /// </summary>
     public string Answer { get; }
+
+    /// <summary>
+    /// Gets the answer with parenthetical groups stripped, ready for display.
+    /// </summary>
+    public string CanonicalAnswer => AnswerParser.Canonical(Answer);
 
     /// <summary>
     /// Gets the grammatical group classification of the word (Noun, Verb, or Other).

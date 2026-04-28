@@ -214,13 +214,32 @@ Word: "aandacht" (attention)
 ## Word List Format
 
 ### Precompiled Words (Data/words.csv)
-Simple two-column format:
+
+Each line is a single vocabulary entry with two fields separated by ` ; ` (space-semicolon-space):
+
 ```
-question;answer
-aandacht;attention
-afleidingen;distractions
-begeleiding;guidance
+question ; answer
+pas op ; be careful, look out!
+de boete ; the fine (a penalty)
+voorbereiden ; to prepare (voor + bereiden)
+cao ; collective labor agreement (c.l.a.)
 ```
+
+**Question field** — the Dutch word or phrase:
+- Latin characters only (standard ASCII letters/digits, accented Dutch characters such as é, ë, ij, oe, etc.)
+- Spaces and hyphens are allowed
+- No commas, brackets, or non-Latin characters (e.g. Cyrillic)
+
+**Answer field** — the English translation:
+- Latin characters, digits, spaces, commas, apostrophes, hyphens, periods, and exclamation marks
+- Multiple equivalents are comma-separated: `to decide, to resolve`
+- Context clues and usage examples go in `(...)` brackets: `the fine (a penalty)`
+  - Bracket content is stripped before display in all quiz modes — it never appears on quiz buttons
+  - Inside brackets, additional characters such as `+`, `:`, `/`, and Dutch text are allowed
+- No Cyrillic or other non-Latin characters
+- The answer must contain at least one word outside brackets
+
+**Validation:** The application throws a `FormatException` on startup if any entry in `Data/words.csv` violates these rules.
 
 ### Managed Words (appdata.csv)
 *Note: This file is automatically maintained by the application and is not intended for manual editing.*

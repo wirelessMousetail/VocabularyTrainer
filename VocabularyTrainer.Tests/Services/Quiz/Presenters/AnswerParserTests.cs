@@ -1,5 +1,5 @@
 using FluentAssertions;
-using VocabularyTrainer.Services.Quiz.Presenters;
+using VocabularyTrainer.Services.Utils;
 using Xunit;
 
 namespace VocabularyTrainer.Tests.Services.Quiz.Presenters;

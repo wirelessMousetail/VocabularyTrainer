@@ -30,6 +30,4 @@ static class Program
 //    * Questions should not contain commas or brackets
 //  * Rewrite all testes: those which can be parametrized, should be parametrized
 //  * improve to add other languages support
-
-
-//todo Написать скрипт, чтобы смержить words и appdata, привести финальный лист в нормальный вид, убрать дубликаты если есть
+ 
