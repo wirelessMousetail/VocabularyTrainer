@@ -26,6 +26,7 @@ public class TypingQuizViewModel : ViewModelBase
     private string _resultMessage = string.Empty;
     private string _resultColor = ColorDefault;
     private bool _isQuizCompleted;
+    private bool _isAnswerHintVisible;
 
     /// <summary>
     /// Gets the question text to display.
@@ -82,6 +83,21 @@ public class TypingQuizViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Gets the full unstripped answer string (including bracket content) for display as a hint.
+    /// </summary>
+    public string AnswerHintText => _session.Quiz.WordEntry.Answer;
+
+    /// <summary>
+    /// Gets a value indicating whether the answer hint should be visible.
+    /// True only after a correct answer when the answer contains parenthetical content.
+    /// </summary>
+    public bool IsAnswerHintVisible
+    {
+        get => _isAnswerHintVisible;
+        private set => SetProperty(ref _isAnswerHintVisible, value);
+    }
+
+    /// <summary>
     /// Command executed when the user submits their typed answer.
     /// </summary>
     public RelayCommand SubmitCommand { get; }
@@ -115,6 +131,7 @@ public class TypingQuizViewModel : ViewModelBase
                 ResultMessage = "Correct!";
                 ResultColor = ColorCorrect;
                 IsQuizCompleted = true;
+                IsAnswerHintVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer;
                 SubmitCommand.RaiseCanExecuteChanged();
                 StartAutoCloseTimer();
                 break;
