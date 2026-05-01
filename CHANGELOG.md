@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Answer hint after correct answer** — in multiple-choice mode, when the correct answer contains parenthetical content (e.g. "the current (water, air, electricity)"), the full unstripped answer is shown as a hint below the result message after the user answers correctly.
+
 ### Changed
 
 - **Word list sanitization** — fixed typos, removed Cyrillic text, corrected separators, and improved phrasing across `Data/words.csv`. MC quiz options and correct-answer labels now strip parenthetical context (`(...)`) before display, matching typing mode behaviour.

@@ -34,6 +34,14 @@
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,8,0,0"/>
         </Style>
+
+        <Style Selector="TextBlock.answer-hint">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+        </Style>
     </Window.Styles>
 
     <Panel x:Name="RootPanel" Focusable="True">
@@ -65,6 +73,11 @@
                        Foreground="{Binding ResultColor}"
                        Classes="result"
                        IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <!-- Full answer hint (shown after correct answer when brackets are present) -->
+            <TextBlock Text="{Binding AnswerHintText}"
+                       IsVisible="{Binding IsAnswerHintVisible}"
+                       Classes="answer-hint"/>
         </StackPanel>
     </Panel>
 </Window>
