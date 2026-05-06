@@ -8,6 +8,9 @@
 
 ### Changed
 
+- **Auto-focus input on typing quiz open** — the answer field is now focused automatically when the typing quiz window opens, so the user can start typing immediately without clicking.
+- **Hyphen-insensitive answer matching** — hyphens are treated as spaces during answer normalization, so `after-school` and `after school` are accepted as equivalent.
+
 - **Word list sanitization** — fixed typos, removed Cyrillic text, corrected separators, and improved phrasing across `Data/words.csv`. MC quiz options and correct-answer labels now strip parenthetical context (`(...)`) before display, matching typing mode behaviour.
 - **Answer format validation** — `Data/words.csv` is validated on load; entries with Cyrillic characters, invalid punctuation, malformed brackets, or empty fields throw a `FormatException` at startup.
 - **Answer update on merge** — when `Data/words.csv` contains a corrected answer for an existing word, `LoadAndMerge()` now updates the stored answer while preserving weight, streak, and group.

@@ -34,7 +34,9 @@ public class TypingQuizPresenterTests : IDisposable
     [InlineData("de hond", "dog",    "cat",      QuizResult.Wrong)]         // wrong answer
     [InlineData("hond",    "de hond","het hond", QuizResult.WrongArticle)]  // wrong Dutch article
     [InlineData("hond",    "de hond","de hond",  QuizResult.Correct)]       // correct Dutch article
-    [InlineData("hond",    "de hond","hond",     QuizResult.Wrong)]         // no article typed (not WrongArticle)
+    [InlineData("hond",    "de hond","hond",        QuizResult.Wrong)]         // no article typed (not WrongArticle)
+    [InlineData("school",  "after-school", "after school", QuizResult.Correct)] // hyphen in answer, space typed
+    [InlineData("school",  "after school", "after-school", QuizResult.Correct)] // space in answer, hyphen typed
     public void SingleAttempt_Result(string question, string correct, string typed, QuizResult expected)
     {
         var presenter = MakePresenter(question, correct);

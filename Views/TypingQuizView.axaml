@@ -49,7 +49,8 @@
             <TextBlock Text="{Binding Question}"
                        Classes="question"/>
 
-            <TextBox Text="{Binding TextInput}"
+            <TextBox x:Name="AnswerInput"
+                     Text="{Binding TextInput}"
                      Watermark="Type your answer…"
                      HorizontalAlignment="Stretch"
                      Margin="0,0,0,8"
