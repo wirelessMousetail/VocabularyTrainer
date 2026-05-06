@@ -77,7 +77,7 @@ public class TypingQuizPresenter : IQuizPresenter
 
     private static string Normalize(string s)
     {
-        var t = s.Trim().ToLowerInvariant();
+        var t = s.Trim().ToLowerInvariant().Replace('-', ' ');
         if (t.StartsWith("the ")) t = t.Substring(4);
         else if (t.StartsWith("an ")) t = t.Substring(3);
         else if (t.StartsWith("a ")) t = t.Substring(2);

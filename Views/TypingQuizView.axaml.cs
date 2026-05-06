@@ -19,6 +19,12 @@ public partial class TypingQuizView : Avalonia.Controls.Window
         AddHandler(KeyDownEvent, Window_KeyDown, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        AnswerInput.Focus();
+    }
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
