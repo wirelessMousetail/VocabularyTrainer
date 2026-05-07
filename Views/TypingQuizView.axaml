@@ -56,17 +56,11 @@
 
     <Panel x:Name="RootPanel" Focusable="True">
         <DockPanel>
-            <!-- Accent header: group label + question -->
+            <!-- Accent header: question -->
             <Border DockPanel.Dock="Top"
                     Background="#3D3D8F"
                     Padding="24,20,24,24">
                 <StackPanel>
-                    <TextBlock Text="{Binding WordGroupLabel}"
-                               FontSize="12"
-                               FontWeight="SemiBold"
-                               Foreground="#AAAADD"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,8"/>
                     <TextBlock Text="{Binding Question}"
                                FontSize="22"
                                FontWeight="Bold"
