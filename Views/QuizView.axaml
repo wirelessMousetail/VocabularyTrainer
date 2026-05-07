@@ -4,8 +4,9 @@
         x:Class="VocabularyTrainer.Views.QuizView"
         x:DataType="vm:QuizViewModel"
         Title="VocabularyTrainer Quiz"
-        Width="450" Height="320"
-        MinWidth="350" MinHeight="250"
+        Width="450"
+        MinWidth="350" MinHeight="250" MaxHeight="800"
+        SizeToContent="Height"
         CanResize="True"
         WindowStartupLocation="CenterScreen"
         Icon="/Resources/tray.ico"
@@ -70,8 +71,7 @@
         </Border>
 
         <!-- Answer area -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="16,12,16,16">
+        <StackPanel Margin="16,12,16,16">
 
                 <ItemsControl ItemsSource="{Binding AnswerOptions}">
                     <ItemsControl.ItemTemplate>
@@ -93,6 +93,5 @@
                            IsVisible="{Binding IsHintVisible}"
                            Classes="hint"/>
             </StackPanel>
-        </ScrollViewer>
     </DockPanel>
 </Window>
