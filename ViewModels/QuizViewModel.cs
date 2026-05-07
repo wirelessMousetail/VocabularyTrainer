@@ -69,6 +69,11 @@ public class QuizViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Gets the word group label shown in the header (e.g. "NOUN", "VERB", "OTHER").
+    /// </summary>
+    public string WordGroupLabel => _session.Quiz.WordEntry.Group.ToString().ToUpperInvariant();
+
+    /// <summary>
     /// Gets the full unstripped answer string (including bracket content) for display as a hint.
     /// </summary>
     public string HintText => _session.Quiz.WordEntry.Answer;

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Visual redesign — accent header layout** — visual design of all application windows was improved 
+
 ### Added
 
 - **Answer hint after correct answer** — in multiple-choice mode, when the correct answer contains parenthetical content (e.g. "the current (water, air, electricity)"), the full unstripped answer is shown as a hint below the result message after the user answers correctly.

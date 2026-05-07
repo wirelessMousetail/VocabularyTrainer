@@ -12,44 +12,64 @@
 
     <Window.Styles>
         <Style Selector="TextBlock.label">
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#444444"/>
             <Setter Property="Margin" Value="0,12,0,4"/>
         </Style>
 
         <Style Selector="NumericUpDown">
             <Setter Property="Width" Value="150"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="CornerRadius" Value="6"/>
         </Style>
 
         <Style Selector="RadioButton">
             <Setter Property="Margin" Value="0,4"/>
         </Style>
 
-        <Style Selector="Button.action">
-            <Setter Property="Padding" Value="16,8"/>
+        <Style Selector="Button.action-save">
+            <Setter Property="Padding" Value="20,9"/>
             <Setter Property="Margin" Value="8,0"/>
             <Setter Property="MinWidth" Value="90"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="#3A7BD5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.action-save:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2D63B0"/>
+        </Style>
+
+        <Style Selector="Button.action-cancel">
+            <Setter Property="Padding" Value="20,9"/>
+            <Setter Property="Margin" Value="8,0"/>
+            <Setter Property="MinWidth" Value="90"/>
+            <Setter Property="CornerRadius" Value="6"/>
         </Style>
     </Window.Styles>
 
     <DockPanel>
         <!-- Buttons pinned to the bottom -->
-        <StackPanel DockPanel.Dock="Bottom"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="24,12,24,24">
-            <Button Content="Save"
-                    Command="{Binding SaveCommand}"
-                    Classes="action accent"/>
-            <Button Content="Cancel"
-                    Command="{Binding CancelCommand}"
-                    Classes="action"/>
-        </StackPanel>
+        <Border DockPanel.Dock="Bottom"
+                BorderBrush="#E0E0E0"
+                BorderThickness="0,1,0,0"
+                Padding="24,12">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Button Content="Save"
+                        Command="{Binding SaveCommand}"
+                        Classes="action-save"/>
+                <Button Content="Cancel"
+                        Command="{Binding CancelCommand}"
+                        Classes="action-cancel"/>
+            </StackPanel>
+        </Border>
 
         <!-- Scrollable settings content -->
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="24,24,24,0">
-                <!-- Quiz Interval -->
+            <StackPanel Margin="24,16,24,0">
+
                 <TextBlock Text="Quiz interval (seconds):" Classes="label"/>
                 <NumericUpDown Value="{Binding QuizIntervalSeconds}"
                                Minimum="1"
@@ -57,7 +77,6 @@
                                Increment="10"
                                FormatString="0"/>
 
-                <!-- Auto-close Delay -->
                 <TextBlock Text="Auto-close after correct (seconds):" Classes="label"/>
                 <NumericUpDown Value="{Binding AutoCloseSeconds}"
                                Minimum="1"
@@ -65,7 +84,6 @@
                                Increment="1"
                                FormatString="0"/>
 
-                <!-- Number of Options -->
                 <TextBlock Text="Number of answer options:" Classes="label"/>
                 <NumericUpDown Value="{Binding OptionCount}"
                                Minimum="2"
@@ -73,12 +91,12 @@
                                Increment="1"
                                FormatString="0"/>
 
-                <!-- Quiz Direction -->
                 <TextBlock Text="Quiz Direction:" Classes="label" Margin="0,20,0,8"/>
-                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                <Border Background="#FAFAFA"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12">
+                        CornerRadius="6"
+                        Padding="14,10">
                     <StackPanel>
                         <RadioButton Content="Direct (Dutch → English)"
                                      IsChecked="{Binding IsDirectMode}"
@@ -92,12 +110,13 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Difficulty -->
                 <TextBlock Text="Difficulty:" Classes="label" Margin="0,20,0,8"/>
-                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                <Border Background="#FAFAFA"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12">
+                        CornerRadius="6"
+                        Padding="14,10"
+                        Margin="0,0,0,24">
                     <StackPanel>
                         <RadioButton Content="Easy — random distractors"
                                      IsChecked="{Binding IsEasyMode}"
@@ -110,7 +129,7 @@
                                      GroupName="Difficulty"/>
                         <CheckBox Content="Reveal letters on wrong answers"
                                   IsChecked="{Binding IsTypingRevealLetters}"
-                                  Margin="24,4,0,0"/>
+                                  Margin="24,6,0,0"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
