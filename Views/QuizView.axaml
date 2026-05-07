@@ -4,73 +4,88 @@
         x:Class="VocabularyTrainer.Views.QuizView"
         x:DataType="vm:QuizViewModel"
         Title="VocabularyTrainer Quiz"
-        Width="450" Height="400"
-        MinWidth="350" MinHeight="300"
+        Width="450"
+        MinWidth="350" MinHeight="250" MaxHeight="800"
+        SizeToContent="Height"
         CanResize="True"
         WindowStartupLocation="CenterScreen"
         Icon="/Resources/tray.ico"
         PointerPressed="Window_PointerPressed">
 
     <Window.Styles>
-        <Style Selector="Button">
+        <Style Selector="Button.answer-option">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="Margin" Value="0,6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="0,4"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
-
-        <Style Selector="TextBlock.question">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
+        <Style Selector="Button.answer-option:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3A7BD5"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.answer-option:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.5"/>
         </Style>
 
         <Style Selector="TextBlock.result">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,20,0,0"/>
+            <Setter Property="Margin" Value="0,12,0,0"/>
         </Style>
 
         <Style Selector="TextBlock.hint">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Foreground" Value="#666666"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
         </Style>
     </Window.Styles>
 
-    <Panel>
-        <StackPanel Margin="24" VerticalAlignment="Center">
-            <!-- Question -->
-            <TextBlock Text="{Binding Question}"
-                       Classes="question"/>
+    <DockPanel>
+        <!-- Accent header: question -->
+        <Border DockPanel.Dock="Top"
+                Background="#3D3D8F"
+                Padding="24,20,24,24">
+            <StackPanel>
+                <TextBlock Text="{Binding Question}"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-            <!-- Answer Buttons -->
-            <ItemsControl ItemsSource="{Binding AnswerOptions}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Button Content="{Binding}"
-                                Command="{Binding $parent[Window].DataContext.AnswerCommand}"
-                                CommandParameter="{Binding}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+        <!-- Answer area -->
+        <StackPanel Margin="16,12,16,16">
 
-            <!-- Result Message -->
-            <TextBlock Text="{Binding ResultMessage}"
-                       Foreground="{Binding ResultColor}"
-                       Classes="result"
-                       IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <ItemsControl ItemsSource="{Binding AnswerOptions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding}"
+                                    Classes="answer-option"
+                                    Command="{Binding $parent[Window].DataContext.AnswerCommand}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-            <!-- Full answer hint (shown after correct answer when brackets are present) -->
-            <TextBlock Text="{Binding HintText}"
-                       IsVisible="{Binding IsHintVisible}"
-                       Classes="hint"/>
-        </StackPanel>
-    </Panel>
+                <TextBlock Text="{Binding ResultMessage}"
+                           Foreground="{Binding ResultColor}"
+                           Classes="result"
+                           IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                <TextBlock Text="{Binding HintText}"
+                           IsVisible="{Binding IsHintVisible}"
+                           Classes="hint"/>
+            </StackPanel>
+    </DockPanel>
 </Window>

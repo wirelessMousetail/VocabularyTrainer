@@ -4,81 +4,106 @@
         x:Class="VocabularyTrainer.Views.TypingQuizView"
         x:DataType="vm:TypingQuizViewModel"
         Title="VocabularyTrainer Quiz"
-        Width="450" Height="400"
-        MinWidth="350" MinHeight="300"
+        Width="450"
+        MinWidth="350" MinHeight="240" MaxHeight="800"
+        SizeToContent="Height"
         CanResize="True"
         WindowStartupLocation="CenterScreen"
         Icon="/Resources/tray.ico"
         PointerPressed="Window_PointerPressed">
 
     <Window.Styles>
-        <Style Selector="TextBlock.question">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
+        <Style Selector="Button.submit">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="#3A7BD5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.submit:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2D63B0"/>
+        </Style>
+        <Style Selector="Button.submit:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.5"/>
         </Style>
 
         <Style Selector="TextBlock.result">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,20,0,0"/>
+            <Setter Property="Margin" Value="0,12,0,0"/>
         </Style>
 
         <Style Selector="TextBlock.hint">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontStyle" Value="Italic"/>
-            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Foreground" Value="#666666"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,8,0,0"/>
         </Style>
 
         <Style Selector="TextBlock.answer-hint">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Foreground" Value="#666666"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
         </Style>
     </Window.Styles>
 
     <Panel x:Name="RootPanel" Focusable="True">
-        <StackPanel Margin="24" VerticalAlignment="Center">
-            <TextBlock Text="{Binding Question}"
-                       Classes="question"/>
+        <DockPanel>
+            <!-- Accent header: question -->
+            <Border DockPanel.Dock="Top"
+                    Background="#3D3D8F"
+                    Padding="24,20,24,24">
+                <StackPanel>
+                    <TextBlock Text="{Binding Question}"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
 
-            <TextBox x:Name="AnswerInput"
-                     Text="{Binding TextInput}"
-                     Watermark="Type your answer…"
-                     HorizontalAlignment="Stretch"
-                     Margin="0,0,0,8"
-                     IsEnabled="{Binding !IsQuizCompleted}">
-                <TextBox.KeyBindings>
-                    <KeyBinding Gesture="Return" Command="{Binding SubmitCommand}"/>
-                </TextBox.KeyBindings>
-            </TextBox>
+            <!-- Input area -->
+            <StackPanel Margin="16,12,16,16">
 
-            <Button Content="Check"
-                    Command="{Binding SubmitCommand}"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    Padding="12,8"/>
+                <TextBox x:Name="AnswerInput"
+                         Text="{Binding TextInput}"
+                         Watermark="Type your answer…"
+                         HorizontalAlignment="Stretch"
+                         Margin="0,0,0,8"
+                         CornerRadius="6"
+                         IsEnabled="{Binding !IsQuizCompleted}">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Return" Command="{Binding SubmitCommand}"/>
+                    </TextBox.KeyBindings>
+                </TextBox>
 
-            <TextBlock Text="{Binding HintText}"
-                       Classes="hint"
-                       IsVisible="{Binding HintText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <Button Content="Check"
+                        Classes="submit"
+                        Command="{Binding SubmitCommand}"
+                        IsEnabled="{Binding !IsQuizCompleted}"/>
 
-            <TextBlock Text="{Binding ResultMessage}"
-                       Foreground="{Binding ResultColor}"
-                       Classes="result"
-                       IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <TextBlock Text="{Binding HintText}"
+                           Classes="hint"
+                           IsVisible="{Binding HintText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
-            <!-- Full answer hint (shown after correct answer when brackets are present) -->
-            <TextBlock Text="{Binding AnswerHintText}"
-                       IsVisible="{Binding IsAnswerHintVisible}"
-                       Classes="answer-hint"/>
-        </StackPanel>
+                <TextBlock Text="{Binding ResultMessage}"
+                           Foreground="{Binding ResultColor}"
+                           Classes="result"
+                           IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                <TextBlock Text="{Binding AnswerHintText}"
+                           IsVisible="{Binding IsAnswerHintVisible}"
+                           Classes="answer-hint"/>
+            </StackPanel>
+        </DockPanel>
     </Panel>
 </Window>
