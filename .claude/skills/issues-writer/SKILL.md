@@ -1,62 +1,90 @@
 ﻿---
 name: "issues-writer"
-description: "Writes issues, bugs, user stories for the project. Use it when user asks to create or write a new issue for a new feature, technical improvenent or a bug fix"
+description: "Writes issues, bugs, user stories for the project. Use it when user asks to create or write a new issue for a new feature, technical improvement or a bug fix"
 ---
 
 # Issue writer
 
 ## Instructions:
-1. Read the issue description provided by the user and evaluate what needs to be changed
-2. Make sure that you have all related information about the project in your context. Study project files and documentation, if required
-3. Write the issue in the proper format:
-   3.1 If you creating a user story for a new feature or technical improvement, then use the structure:
-```markdown
-## WHAT
-## WHY
-## HOW
-```
-   3.2 If you creating a bug fix, then use the structure: 
-```markdown
-### Expected behavior 
-### Actual behavior
-### Steps to reproduce
-```
-4. If some important information does not fall under any of proposed sections, create an additional section and give it a proper name.
-5. Print the text of the issue to the output
+1. Read the issue description provided by the user and evaluate what needs to be changed.
+2. Study the relevant code area to verify assumptions — check actual class/method names, existing behaviour, and any constraints — before writing.
+3. Choose the correct format and write the issue:
+   - **Feature or technical improvement:** use the structure below in section 3.1
+   - **Bug fix:** use the structure below in section 3.2
+4. Always include a short, descriptive **title** as the first line, prefixed with `# `.
+5. If important information does not fit any proposed section, add an extra section with an appropriate name.
+6. Write concisely. Do not pad sections or restate what the user already said. Each section should add information.
+7. Print the issue as unrendered markdown so the user can copy-paste it into the tracker as-is.
 
-
-## Rules:
-* Print created issue as unrendered markdown text, so the user can copypaste to the tracker it as is
-* Do not attempt to create the issue in the tracker - you do not have the access
-
-## Examples:
+### 3.1 Feature / technical improvement structure
 ```markdown
+# <Title>
+
 ## What
-  Many unit tests repeat the same logic with different input values using separate `[Fact]` methods. These should be converted to `[Theory]` with `[InlineData]` or `[MemberData]`.
+<What is being added or changed — one or two sentences.>
 
 ## Why
-  Duplicated test structure increases maintenance cost: adding a new case means adding a new method, and a logic change requires updating multiple places. Parameterized tests make the intent clearer — "this behaviour holds for all these inputs" — and make it trivial to add edge cases.
+<Why this matters: the problem it solves, the cost of not doing it.>
 
 ## How
-  1. Identify `[Fact]` tests that share the same assertion logic but differ only in input/output values
-  2. Rewrite them as `[Theory]` with `[InlineData]` (for simple scalar inputs) or `[MemberData]` / `[ClassData]` (for complex objects)
-  3. Ensure test names remain descriptive — xUnit appends parameter values to the display name automatically
-  4. Do not parameterize tests where variation in setup or assertion logic makes a shared structure artificial
+<Numbered, concrete implementation steps. Name actual files, classes, or methods where known.>
+```
+
+### 3.2 Bug fix structure
+```markdown
+# <Title>
+
+## Expected behavior
+WHEN <context>
+AND <condition>
+THEN <expected outcome>
+
+## Actual behavior
+<What actually happens instead.>
+
+## Steps to reproduce
+1. <Step>
+2. <Step>
+3. ...
+```
+
+## Rules:
+* Do not attempt to create the issue in the tracker - you do not have access.
+* Do not invent implementation details you could not verify from the code.
+
+## Examples:
+
+```markdown
+# Convert repeated [Fact] tests to [Theory] with parameterized inputs
+
+## What
+Many unit tests repeat the same assertion logic with different input values using separate `[Fact]` methods. These should be converted to `[Theory]` with `[InlineData]` or `[MemberData]`.
+
+## Why
+Duplicated test structure increases maintenance cost: adding a new case means adding a new method, and a logic change requires updating multiple places. Parameterized tests make the intent clearer and make it trivial to add edge cases.
+
+## How
+1. Identify `[Fact]` tests that share the same assertion logic but differ only in input/output values.
+2. Rewrite them as `[Theory]` with `[InlineData]` (scalar inputs) or `[MemberData]` / `TheoryData<>` (complex objects).
+3. Ensure test names remain descriptive — xUnit appends parameter values to the display name automatically.
+4. Do not parameterize tests where variation in setup or assertion logic makes a shared structure artificial.
 ```
 
 ```markdown
-### Expected behavior
-WHEN the quiz in the typing mode
+# Typing quiz accepts only the first correct answer when multiple exist
+
+## Expected behavior
+WHEN the quiz is in typing mode
 AND the question has more than one correct answer
-AND the user has typed the correct answer
-THEN the quiz responds that result is correct
+AND the user types any one of the correct answers
+THEN the quiz marks the result as correct
 
-### Actual behavior
-the quiz responds that result is incorrect
+## Actual behavior
+The quiz marks the result as incorrect unless the user types the exact first answer stored in the CSV.
 
-### Steps to reproduce
-1. Start the quiz
-2. Wait for the question which has more than one correct answer (use test or "rig" the app to ask you a specific question) 
-3. Type one of correct answers and press Enter
+## Steps to reproduce
+1. Start the quiz.
+2. Wait for a question that has multiple accepted answers (or rig the app to show a specific word).
+3. Type one of the correct answers that is not the first one and press Enter.
 ```
 
