@@ -191,7 +191,16 @@ public class ApplicationService : IDisposable
         _weightStrategy.RegisterMaxPenalty(word);
         _wordListService.SaveWords();
         var settings = _settingsService.GetSettings();
-        var session = _quizService.CreateMcSessionForWord(word, isReversed, settings.QuizConfiguration, _wordListService);
+        var cfg = settings.QuizConfiguration;
+        var mcConfig = new QuizConfiguration
+        {
+            Difficulty = QuizDifficulty.Easy,
+            Direction = isReversed ? QuizDirection.Reverse : QuizDirection.Direct,
+            OptionCount = cfg.OptionCount,
+            AutoCloseAfterCorrectSeconds = cfg.AutoCloseAfterCorrectSeconds,
+            MaxAttemptsPerQuiz = cfg.MaxAttemptsPerQuiz,
+        };
+        var session = _quizService.CreateSessionForWord(word, mcConfig, _wordListService);
         QuizRequested?.Invoke(this, session);
     }
 

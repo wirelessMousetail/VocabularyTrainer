@@ -60,29 +60,10 @@ public class QuizService
     }
 
     /// <summary>
-    /// Creates a multiple-choice quiz session for a specific word with a pinned direction.
-    /// Used when switching from typing mode to multiple-choice mid-quiz.
-    /// The difficulty is forced to Easy so the session is not treated as a typing quiz.
+    /// Creates a quiz session for a specific word using the supplied configuration.
+    /// Supports both typing and multiple-choice modes depending on <see cref="QuizConfiguration.Difficulty"/>.
     /// </summary>
-    public QuizSession CreateMcSessionForWord(WordEntry word, bool isReversed, QuizConfiguration configuration, WordListService wordListService)
-    {
-        var mcConfig = new QuizConfiguration
-        {
-            Difficulty = QuizDifficulty.Easy,
-            Direction = isReversed ? QuizDirection.Reverse : QuizDirection.Direct,
-            OptionCount = configuration.OptionCount,
-            AutoCloseAfterCorrectSeconds = configuration.AutoCloseAfterCorrectSeconds,
-            MaxAttemptsPerQuiz = configuration.MaxAttemptsPerQuiz,
-        };
-        var mcQuiz = CreateQuiz(mcConfig.OptionCount, mcConfig.Direction, word);
-        var mcPresenter = new QuizPresenter(mcQuiz, _weightStrategy, wordListService, mcConfig.MaxAttemptsPerQuiz);
-        return new QuizSession(mcQuiz, mcPresenter, mcConfig);
-    }
-
-    /// <summary>
-    /// Creates a quiz session with a specific word as the question. Intended for testing.
-    /// </summary>
-    internal QuizSession CreateQuizSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
+    public QuizSession CreateSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
     {
         if (configuration.Difficulty.IsTypingMode())
         {
