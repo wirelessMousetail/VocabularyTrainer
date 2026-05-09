@@ -1,6 +1,6 @@
 ﻿---
 name: "issues-writer"
-description: "Use when the user wants to produce a written GitHub issue — a bug report, feature request, or improvement proposal — for the project. Trigger on phrasings like \"write an issue\", \"draft a ticket\", \"log this as a bug\", \"create a feature request\". Do not trigger when the user wants to implement or fix something directly in the code."
+description: "Use when the user wants to produce a written GitHub issue — a bug report, feature request, or improvement proposal — for the project. Trigger on phrasings like \"write a story\", \"write an issue\", \"draft a ticket\", \"log this as a bug\", \"create a feature request\". Do not trigger when the user wants to implement or fix something directly in the code."
 ---
 
 # Issue writer
