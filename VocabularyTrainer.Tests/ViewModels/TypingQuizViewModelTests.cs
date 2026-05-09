@@ -36,15 +36,6 @@ public class TypingQuizViewModelTests : IDisposable
     // ── IsAnswerHintVisible ───────────────────────────────────────────────────
 
     [Fact]
-    public void IsAnswerHintVisible_IsFalse_BeforeAnswering()
-    {
-        var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
-        var vm = MakeViewModel(word);
-
-        vm.IsAnswerHintVisible.Should().BeFalse();
-    }
-
-    [Fact]
     public void IsAnswerHintVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasBrackets()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
@@ -56,8 +47,37 @@ public class TypingQuizViewModelTests : IDisposable
         vm.IsAnswerHintVisible.Should().BeTrue();
     }
 
+    [Theory]
+    [InlineData("stroom", "the current (water, air, electricity)", null)]          // before answering
+    [InlineData("stroom", "the current (water, air, electricity)", "wrong answer")] // wrong answer
+    [InlineData("hond",   "dog",                                   "dog")]          // correct, no brackets
+    public void IsAnswerHintVisible_IsFalse(string question, string answer, string? typed)
+    {
+        var word = WordEntryFixture.Make(question, answer);
+        var vm = MakeViewModel(word);
+
+        if (typed != null)
+        {
+            vm.TextInput = typed;
+            vm.SubmitCommand.Execute(null);
+        }
+
+        vm.IsAnswerHintVisible.Should().BeFalse();
+    }
+
+    // ── SwitchToOptionsCommand ────────────────────────────────────────────────
+
     [Fact]
-    public void IsAnswerHintVisible_IsFalse_AfterCorrectAnswer_WhenAnswerHasNoBrackets()
+    public void SwitchToOptionsCommand_CanExecute_IsTrue_Initially()
+    {
+        var word = WordEntryFixture.Make("hond", "dog");
+        var vm = MakeViewModel(word);
+
+        vm.SwitchToOptionsCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SwitchToOptionsCommand_CanExecute_IsFalse_AfterCorrectAnswer()
     {
         var word = WordEntryFixture.Make("hond", "dog");
         var vm = MakeViewModel(word);
@@ -65,24 +85,25 @@ public class TypingQuizViewModelTests : IDisposable
         vm.TextInput = "dog";
         vm.SubmitCommand.Execute(null);
 
-        vm.IsAnswerHintVisible.Should().BeFalse();
+        vm.SwitchToOptionsCommand.CanExecute(null).Should().BeFalse();
     }
 
     [Fact]
-    public void IsAnswerHintVisible_IsFalse_AfterWrongAnswer()
+    public void SwitchToOptionsCommand_SetsWordWeightToMax_AndInvokesSwitchCallback()
     {
-        var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
-        var vm = MakeViewModel(word);
+        var word = WordEntryFixture.Make("hond", "dog", weight: 0);
+        bool callbackInvoked = false;
+        var vm = MakeViewModel(word, onSwitchToOptions: () => callbackInvoked = true);
 
-        vm.TextInput = "wrong answer";
-        vm.SubmitCommand.Execute(null);
+        vm.SwitchToOptionsCommand.Execute(null);
 
-        vm.IsAnswerHintVisible.Should().BeFalse();
+        word.WeightData.Weight.Should().Be(WordWeightStrategy.MaxWeight);
+        callbackInvoked.Should().BeTrue();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private TypingQuizViewModel MakeViewModel(WordEntry word)
+    private TypingQuizViewModel MakeViewModel(WordEntry word, Action? onSwitchToOptions = null)
     {
         var quiz = new QuizModel(
             word.Question,
@@ -94,6 +115,6 @@ public class TypingQuizViewModelTests : IDisposable
         var presenter = new TypingQuizPresenter(quiz, _strategy, _wordListService, false);
         var config = new QuizConfiguration { AutoCloseAfterCorrectSeconds = 9999 };
         var session = new QuizSession(quiz, presenter, config);
-        return new TypingQuizViewModel(session, () => { });
+        return new TypingQuizViewModel(session, () => { }, onSwitchToOptions ?? (() => { }));
     }
 }

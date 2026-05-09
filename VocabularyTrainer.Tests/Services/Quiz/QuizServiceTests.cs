@@ -218,6 +218,49 @@ public class QuizServiceTests
         session.Quiz.CorrectAnswer.Should().Be("to close");
     }
 
+    // ── CreateMcSessionForWord ────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(false, "hond", "dog")]  // direct:  question=Dutch, correct option=English
+    [InlineData(true,  "dog",  "hond")] // reversed: question=English, correct option=Dutch
+    public void CreateMcSessionForWord_PinsDirectionAndContainsCorrectAnswer(
+        bool isReversed, string expectedQuestion, string expectedOption)
+    {
+        var words = FiveDistinctWords();
+        var hond = words.Single(w => w.Question == "hond");
+        var service = Build(words);
+
+        var session = service.CreateMcSessionForWord(hond, isReversed, Config(), null!);
+
+        session.Quiz.Question.Should().Be(expectedQuestion);
+        session.Quiz.Options.Should().Contain(expectedOption);
+    }
+
+    [Fact]
+    public void CreateMcSessionForWord_DifficultyIsNeverTyping()
+    {
+        var words = FiveDistinctWords();
+        var hond = words.Single(w => w.Question == "hond");
+        var service = Build(words);
+        var typingConfig = new QuizConfiguration { Difficulty = QuizDifficulty.Typing };
+
+        var session = service.CreateMcSessionForWord(hond, isReversed: false, typingConfig, null!);
+
+        session.Configuration.Difficulty.IsTypingMode().Should().BeFalse();
+    }
+
+    [Fact]
+    public void CreateMcSessionForWord_OptionsCountMatchesConfiguration()
+    {
+        var words = FiveDistinctWords();
+        var hond = words.Single(w => w.Question == "hond");
+        var service = Build(words);
+
+        var session = service.CreateMcSessionForWord(hond, isReversed: false, Config(options: 3), null!);
+
+        session.Quiz.Options.Should().HaveCount(3);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static WordEntry[] FiveDistinctWords() =>
