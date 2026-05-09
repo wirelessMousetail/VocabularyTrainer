@@ -56,6 +56,12 @@ public class TypingQuizPresenter : IQuizPresenter
         _hintTracker?.Update(typed, _options);
     }
 
+    public void SetMaxWeightPenalty()
+    {
+        _weightStrategy.RegisterMaxPenalty(_quiz.WordEntry);
+        _wordListService.SaveWords();
+    }
+
     public QuizResult GetResult() => _result;
 
     public string GetCorrectAnswer() => _quiz.CorrectAnswer;

@@ -113,6 +113,21 @@ public class TypingQuizPresenterTests : IDisposable
         presenter.GetHint().Should().Be(firstHint);
     }
 
+    // ── SetMaxWeightPenalty ───────────────────────────────────────────────────
+
+    [Fact]
+    public void SetMaxWeightPenalty_SetsWeightTo100_AndResetsStreak()
+    {
+        var word = WordEntryFixture.Make("de hond", "dog", weight: 10, streak: 3);
+        var quiz = MakeTypingQuiz("de hond", "dog", word);
+        var presenter = new TypingQuizPresenter(quiz, _strategy, _wordListService, false);
+
+        presenter.SetMaxWeightPenalty();
+
+        word.WeightData.Weight.Should().Be(WordWeightStrategy.MaxWeight);
+        word.WeightData.CorrectStreak.Should().Be(0);
+    }
+
     // ── Weight updates ────────────────────────────────────────────────────────
 
     [Fact]

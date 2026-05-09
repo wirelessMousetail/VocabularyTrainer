@@ -181,6 +181,18 @@ public class ApplicationService : IDisposable
     }
 
     /// <summary>
+    /// Shows a multiple-choice quiz for a specific word immediately.
+    /// Used when the user switches from typing mode to multiple-choice mid-quiz.
+    /// The timer is not restarted between windows — the quiz slot remains open.
+    /// </summary>
+    public void SwitchToMultipleChoice(WordEntry word, bool isReversed)
+    {
+        var settings = _settingsService.GetSettings();
+        var session = _quizService.CreateMcSessionForWord(word, isReversed, settings.QuizConfiguration, _wordListService);
+        QuizRequested?.Invoke(this, session);
+    }
+
+    /// <summary>
     /// Shows a quiz immediately, unless the application is paused or already opened.
     /// </summary>
     public void ShowQuizNow()

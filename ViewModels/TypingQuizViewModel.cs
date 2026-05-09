@@ -18,6 +18,7 @@ public class TypingQuizViewModel : ViewModelBase
 
     private readonly QuizSession _session;
     private readonly Action _onQuizCompleted;
+    private readonly Action _onSwitchToOptions;
     private Timer? _autoCloseTimer;
 
     private string _question = string.Empty;
@@ -103,18 +104,27 @@ public class TypingQuizViewModel : ViewModelBase
     public RelayCommand SubmitCommand { get; }
 
     /// <summary>
+    /// Command executed when the user wants to switch to multiple-choice for the current question.
+    /// Applies a maximum weight penalty and opens a regular quiz window for the same word.
+    /// </summary>
+    public RelayCommand SwitchToOptionsCommand { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="TypingQuizViewModel"/> class.
     /// </summary>
     /// <param name="session">The quiz session.</param>
     /// <param name="onQuizCompleted">Callback when the quiz is completed.</param>
-    public TypingQuizViewModel(QuizSession session, Action onQuizCompleted)
+    /// <param name="onSwitchToOptions">Callback when the user switches to multiple-choice mode.</param>
+    public TypingQuizViewModel(QuizSession session, Action onQuizCompleted, Action onSwitchToOptions)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
         _onQuizCompleted = onQuizCompleted ?? throw new ArgumentNullException(nameof(onQuizCompleted));
+        _onSwitchToOptions = onSwitchToOptions ?? throw new ArgumentNullException(nameof(onSwitchToOptions));
 
         Question = _session.Quiz.Question;
 
         SubmitCommand = new RelayCommand(OnSubmit, () => !IsQuizCompleted);
+        SwitchToOptionsCommand = new RelayCommand(OnSwitchToOptions, () => !IsQuizCompleted);
     }
 
     private void OnSubmit()
@@ -150,6 +160,12 @@ public class TypingQuizViewModel : ViewModelBase
         }
 
         SubmitCommand.RaiseCanExecuteChanged();
+    }
+
+    private void OnSwitchToOptions()
+    {
+        _session.Presenter.SetMaxWeightPenalty();
+        _onSwitchToOptions();
     }
 
     private void UpdateHint()

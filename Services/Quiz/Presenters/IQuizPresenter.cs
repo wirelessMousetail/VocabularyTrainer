@@ -27,6 +27,12 @@ public interface IQuizPresenter
     /// Only applicable in typing mode with reveal-letters enabled; returns null by default.
     /// </summary>
     string? GetHint() => null;
+
+    /// <summary>
+    /// Immediately sets the word weight to maximum as a penalty (e.g. when switching from typing
+    /// to multiple-choice mid-quiz). Default implementation is a no-op.
+    /// </summary>
+    void SetMaxWeightPenalty() { }
 }
 
 /// <summary>
