@@ -31,9 +31,8 @@
         </Style>
 
         <Style Selector="Button.switch">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Padding" Value="8,10"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Background" Value="#B0B0B0"/>
@@ -103,16 +102,18 @@
                     </TextBox.KeyBindings>
                 </TextBox>
 
-                <Button Content="Check"
-                        Classes="submit"
-                        Command="{Binding SubmitCommand}"
-                        IsEnabled="{Binding !IsQuizCompleted}"/>
-
-                <Button Content="Switch to options"
-                        Classes="switch"
-                        Command="{Binding SwitchToOptionsCommand}"
-                        IsEnabled="{Binding !IsQuizCompleted}"
-                        Margin="0,6,0,0"/>
+                <Grid ColumnDefinitions="*,6,Auto">
+                    <Button Grid.Column="0"
+                            Content="Check"
+                            Classes="submit"
+                            Command="{Binding SubmitCommand}"
+                            IsEnabled="{Binding !IsQuizCompleted}"/>
+                    <Button Grid.Column="2"
+                            Content="To options"
+                            Classes="switch"
+                            Command="{Binding SwitchToOptionsCommand}"
+                            IsEnabled="{Binding !IsQuizCompleted}"/>
+                </Grid>
 
                 <TextBlock Text="{Binding HintText}"
                            Classes="hint"
