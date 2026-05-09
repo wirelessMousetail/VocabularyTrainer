@@ -24,10 +24,10 @@ description: "Writes issues, bugs, user stories for the project. Use it when use
 <What is being added or changed — one or two sentences.>
 
 ## Why
-<Why this matters: the problem it solves, the cost of not doing it.>
+<Why this feature is valuable: what problem it solves, how it improves the user's experience or makes the app more useful.>
 
 ## How
-<Numbered, concrete implementation steps. Name actual files, classes, or methods where known.>
+<Numbered, concrete implementation steps. Reference specific files, classes, or methods only when the description would be ambiguous without them or when the implementer might miss something non-obvious.>
 ```
 
 ### 3.2 Bug fix structure
