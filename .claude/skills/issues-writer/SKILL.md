@@ -27,7 +27,7 @@ description: "Writes issues, bugs, user stories for the project. Use it when use
 <Why this feature is valuable: what problem it solves, how it improves the user's experience or makes the app more useful.>
 
 ## How
-<Numbered, concrete implementation steps. Reference specific files, classes, or methods only when the description would be ambiguous without them or when the implementer might miss something non-obvious.>
+<High-level implementation steps. Focus on what needs to happen, not how to code it. Only mention specific files, classes, or methods if omitting them would make a step ambiguous or hide a non-obvious constraint.>
 ```
 
 ### 3.2 Bug fix structure
