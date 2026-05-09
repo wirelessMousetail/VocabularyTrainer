@@ -124,7 +124,7 @@ public class TypingQuizViewModel : ViewModelBase
         Question = _session.Quiz.Question;
 
         SubmitCommand = new RelayCommand(OnSubmit, () => !IsQuizCompleted);
-        SwitchToOptionsCommand = new RelayCommand(OnSwitchToOptions, () => !IsQuizCompleted);
+        SwitchToOptionsCommand = new RelayCommand(_onSwitchToOptions, () => !IsQuizCompleted);
     }
 
     private void OnSubmit()
@@ -160,12 +160,6 @@ public class TypingQuizViewModel : ViewModelBase
         }
 
         SubmitCommand.RaiseCanExecuteChanged();
-    }
-
-    private void OnSwitchToOptions()
-    {
-        _session.Presenter.SetMaxWeightPenalty();
-        _onSwitchToOptions();
     }
 
     private void UpdateHint()

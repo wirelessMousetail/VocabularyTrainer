@@ -13,6 +13,7 @@ public class ApplicationService : IDisposable
 {
     private readonly QuizService _quizService;
     private readonly WordListService _wordListService;
+    private readonly WordWeightStrategy _weightStrategy = null!;
     private readonly SettingsService _settingsService;
     private readonly ITimer _nextQuizTimer;
     private bool _isPaused;
@@ -70,8 +71,8 @@ public class ApplicationService : IDisposable
         var words = _wordListService.LoadAndMerge();
 
         var settings = _settingsService.GetSettings();
-        var weightStrategy = new WordWeightStrategy();
-        _quizService = new QuizService(words, weightStrategy, settings.QuizConfiguration.Difficulty.CreateSelector());
+        _weightStrategy = new WordWeightStrategy();
+        _quizService = new QuizService(words, _weightStrategy, settings.QuizConfiguration.Difficulty.CreateSelector());
 
         _nextQuizTimer = new SystemTimer();
         _nextQuizTimer.Interval = settings.QuizIntervalSeconds * 1000;
@@ -187,6 +188,8 @@ public class ApplicationService : IDisposable
     /// </summary>
     public void SwitchToMultipleChoice(WordEntry word, bool isReversed)
     {
+        _weightStrategy.RegisterMaxPenalty(word);
+        _wordListService.SaveWords();
         var settings = _settingsService.GetSettings();
         var session = _quizService.CreateMcSessionForWord(word, isReversed, settings.QuizConfiguration, _wordListService);
         QuizRequested?.Invoke(this, session);

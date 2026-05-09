@@ -89,15 +89,14 @@ public class TypingQuizViewModelTests : IDisposable
     }
 
     [Fact]
-    public void SwitchToOptionsCommand_SetsWordWeightToMax_AndInvokesSwitchCallback()
+    public void SwitchToOptionsCommand_InvokesSwitchCallback()
     {
-        var word = WordEntryFixture.Make("hond", "dog", weight: 0);
+        var word = WordEntryFixture.Make("hond", "dog");
         bool callbackInvoked = false;
         var vm = MakeViewModel(word, onSwitchToOptions: () => callbackInvoked = true);
 
         vm.SwitchToOptionsCommand.Execute(null);
 
-        word.WeightData.Weight.Should().Be(WordWeightStrategy.MaxWeight);
         callbackInvoked.Should().BeTrue();
     }
 
