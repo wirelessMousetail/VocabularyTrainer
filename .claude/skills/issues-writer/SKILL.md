@@ -7,16 +7,17 @@ description: "Writes issues, bugs, user stories for the project. Use it when use
 
 ## Instructions:
 1. Read the issue description provided by the user and evaluate what needs to be changed.
-2. Study the relevant code area to verify assumptions — check actual class/method names, existing behaviour, and any constraints — before writing.
-3. Choose the correct format and write the issue:
-   - **Feature or technical improvement:** use the structure below in section 3.1
-   - **Bug fix:** use the structure below in section 3.2
-4. Always include a short, descriptive **title** as the first line, prefixed with `# `.
-5. If important information does not fit any proposed section, add an extra section with an appropriate name.
-6. Write concisely. Do not pad sections or restate what the user already said. Each section should add information.
-7. Print the issue as unrendered markdown so the user can copy-paste it into the tracker as-is.
+2. If the description is too vague to write a meaningful issue — missing the core problem, the motivation, or what done looks like — ask the user one or two focused clarifying questions before proceeding. Do not guess or pad with placeholders.
+3. Study the relevant code area to verify assumptions — check actual class/method names, existing behaviour, and any constraints — before writing.
+4. Choose the correct format and write the issue:
+   - **Feature or technical improvement:** use the structure below in section 4.1
+   - **Bug fix:** use the structure below in section 4.2
+5. Always include a short, descriptive **title** as the first line, prefixed with `# `.
+6. If important information does not fit any proposed section, add an extra section with an appropriate name.
+7. Write concisely. Do not pad sections or restate what the user already said. Each section should add information.
+8. Print the issue as unrendered markdown so the user can copy-paste it into the tracker as-is.
 
-### 3.1 Feature / technical improvement structure
+### 4.1 Feature / technical improvement structure
 ```markdown
 # <Title>
 
@@ -30,7 +31,7 @@ description: "Writes issues, bugs, user stories for the project. Use it when use
 <High-level implementation steps. Focus on what needs to happen, not how to code it. Only mention specific files, classes, or methods if omitting them would make a step ambiguous or hide a non-obvious constraint.>
 ```
 
-### 3.2 Bug fix structure
+### 4.2 Bug fix structure
 ```markdown
 # <Title>
 
