@@ -22,21 +22,21 @@ public class TypingQuizViewModelTests : IDisposable
 
     public void Dispose() => File.Delete(_tempFile);
 
-    // ── AnswerHintText ────────────────────────────────────────────────────────
+    // ── AdditionalInfo ────────────────────────────────────────────────────────
 
     [Fact]
-    public void AnswerHintText_IsFullUnstrippedAnswer()
+    public void AdditionalInfo_IsFullUnstrippedAnswer()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
         var vm = MakeViewModel(word);
 
-        vm.AnswerHintText.Should().Be("the current (water, air, electricity)");
+        vm.AdditionalInfo.Should().Be("the current (water, air, electricity)");
     }
 
-    // ── IsAnswerHintVisible ───────────────────────────────────────────────────
+    // ── IsAdditionalInfoVisible ───────────────────────────────────────────────
 
     [Fact]
-    public void IsAnswerHintVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasBrackets()
+    public void IsAdditionalInfoVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasBrackets()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
         var vm = MakeViewModel(word);
@@ -44,7 +44,7 @@ public class TypingQuizViewModelTests : IDisposable
         vm.TextInput = "the current";
         vm.SubmitCommand.Execute(null);
 
-        vm.IsAnswerHintVisible.Should().BeTrue();
+        vm.IsAdditionalInfoVisible.Should().BeTrue();
     }
 
     [Theory]
@@ -53,7 +53,7 @@ public class TypingQuizViewModelTests : IDisposable
     [InlineData("hond",   "dog",                                   "dog")]          // correct, no brackets, single option
     [InlineData("getal",  "the number, the amount",                null)]           // before answering, multiple options
     [InlineData("getal",  "the number, the amount",                "wrong answer")] // wrong answer, multiple options
-    public void IsAnswerHintVisible_IsFalse(string question, string answer, string? typed)
+    public void IsAdditionalInfoVisible_IsFalse(string question, string answer, string? typed)
     {
         var word = WordEntryFixture.Make(question, answer);
         var vm = MakeViewModel(word);
@@ -64,13 +64,13 @@ public class TypingQuizViewModelTests : IDisposable
             vm.SubmitCommand.Execute(null);
         }
 
-        vm.IsAnswerHintVisible.Should().BeFalse();
+        vm.IsAdditionalInfoVisible.Should().BeFalse();
     }
 
-    // ── IsAnswerHintVisible — multiple options ────────────────────────────────
+    // ── IsAdditionalInfoVisible — multiple options ────────────────────────────
 
     [Fact]
-    public void IsAnswerHintVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasMultipleOptions()
+    public void IsAdditionalInfoVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasMultipleOptions()
     {
         var word = WordEntryFixture.Make("getal", "the number, the amount");
         var vm = MakeViewModel(word);
@@ -78,16 +78,16 @@ public class TypingQuizViewModelTests : IDisposable
         vm.TextInput = "the number";
         vm.SubmitCommand.Execute(null);
 
-        vm.IsAnswerHintVisible.Should().BeTrue();
+        vm.IsAdditionalInfoVisible.Should().BeTrue();
     }
 
     [Fact]
-    public void AnswerHintText_IsFullAnswer_WhenMultipleOptions()
+    public void AdditionalInfo_IsFullAnswer_WhenMultipleOptions()
     {
         var word = WordEntryFixture.Make("getal", "the number, the amount");
         var vm = MakeViewModel(word);
 
-        vm.AnswerHintText.Should().Be("the number, the amount");
+        vm.AdditionalInfo.Should().Be("the number, the amount");
     }
 
     // ── SwitchToOptionsCommand ────────────────────────────────────────────────

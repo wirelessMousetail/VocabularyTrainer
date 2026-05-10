@@ -25,7 +25,7 @@ public class QuizViewModel : ViewModelBase
     private string _resultMessage = string.Empty;
     private string _resultColor = ColorDefault;
     private bool _isQuizCompleted;
-    private bool _isHintVisible;
+    private bool _isAdditionalInfoVisible;
 
     /// <summary>
     /// Gets the question text to display.
@@ -69,18 +69,18 @@ public class QuizViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Gets the full unstripped answer string (including bracket content) for display as a hint.
+    /// Gets the full unstripped answer string (including bracket content) shown after a correct answer.
     /// </summary>
-    public string HintText => _session.Quiz.WordEntry.Answer;
+    public string AdditionalInfo => _session.Quiz.WordEntry.Answer;
 
     /// <summary>
-    /// Gets a value indicating whether the answer hint should be visible.
+    /// Gets a value indicating whether the additional info should be visible.
     /// True only after a correct answer when the answer contains parenthetical content.
     /// </summary>
-    public bool IsHintVisible
+    public bool IsAdditionalInfoVisible
     {
-        get => _isHintVisible;
-        private set => SetProperty(ref _isHintVisible, value);
+        get => _isAdditionalInfoVisible;
+        private set => SetProperty(ref _isAdditionalInfoVisible, value);
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class QuizViewModel : ViewModelBase
                 ResultMessage = "Correct!";
                 ResultColor = ColorCorrect;
                 IsQuizCompleted = true;
-                IsHintVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer;
+                IsAdditionalInfoVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer;
                 StartAutoCloseTimer();
                 break;
 

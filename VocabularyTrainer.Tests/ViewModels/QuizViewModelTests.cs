@@ -22,59 +22,59 @@ public class QuizViewModelTests : IDisposable
 
     public void Dispose() => File.Delete(_tempFile);
 
-    // ── HintText ──────────────────────────────────────────────────────────────
+    // ── AdditionalInfo ────────────────────────────────────────────────────────
 
     [Fact]
-    public void HintText_IsFullUnstrippedAnswer()
+    public void AdditionalInfo_IsFullUnstrippedAnswer()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
         var vm = MakeViewModel(word);
 
-        vm.HintText.Should().Be("the current (water, air, electricity)");
+        vm.AdditionalInfo.Should().Be("the current (water, air, electricity)");
     }
 
-    // ── IsHintVisible ─────────────────────────────────────────────────────────
+    // ── IsAdditionalInfoVisible ───────────────────────────────────────────────
 
     [Fact]
-    public void IsHintVisible_IsFalse_BeforeAnswering()
+    public void IsAdditionalInfoVisible_IsFalse_BeforeAnswering()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
         var vm = MakeViewModel(word);
 
-        vm.IsHintVisible.Should().BeFalse();
+        vm.IsAdditionalInfoVisible.Should().BeFalse();
     }
 
     [Fact]
-    public void IsHintVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasBrackets()
+    public void IsAdditionalInfoVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasBrackets()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
         var vm = MakeViewModel(word);
 
         vm.AnswerCommand.Execute("the current");
 
-        vm.IsHintVisible.Should().BeTrue();
+        vm.IsAdditionalInfoVisible.Should().BeTrue();
     }
 
     [Fact]
-    public void IsHintVisible_IsFalse_AfterCorrectAnswer_WhenAnswerHasNoBrackets()
+    public void IsAdditionalInfoVisible_IsFalse_AfterCorrectAnswer_WhenAnswerHasNoBrackets()
     {
         var word = WordEntryFixture.Make("hond", "dog");
         var vm = MakeViewModel(word);
 
         vm.AnswerCommand.Execute("dog");
 
-        vm.IsHintVisible.Should().BeFalse();
+        vm.IsAdditionalInfoVisible.Should().BeFalse();
     }
 
     [Fact]
-    public void IsHintVisible_IsFalse_AfterWrongAnswer()
+    public void IsAdditionalInfoVisible_IsFalse_AfterWrongAnswer()
     {
         var word = WordEntryFixture.Make("stroom", "the current (water, air, electricity)");
         var vm = MakeViewModel(word);
 
         vm.AnswerCommand.Execute("wrong answer");
 
-        vm.IsHintVisible.Should().BeFalse();
+        vm.IsAdditionalInfoVisible.Should().BeFalse();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
