@@ -1,6 +1,7 @@
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services.Quiz.Distractors;
 using VocabularyTrainer.Services.Quiz.Presenters;
+using VocabularyTrainer.Services.Utils;
 using VocabularyTrainer.Services.Vocabulary;
 using QuizModel = VocabularyTrainer.Models.Quiz;
 
@@ -144,9 +145,14 @@ public class QuizService
 
     private IEnumerable<WordEntry> GetOptionPool(WordEntry correct, int optionCount, bool isReversed)
     {
-        var correctTarget = (isReversed ? correct.Question : correct.Answer).Trim();
-        bool IsSynonym(WordEntry w) =>
-            string.Equals((isReversed ? w.Question : w.Answer).Trim(), correctTarget, StringComparison.OrdinalIgnoreCase);
+        var correctTargetParts = AnswerParser.Options(isReversed ? correct.Question : correct.Answer);
+        bool IsSynonym(WordEntry w)
+        {
+            var candidateParts = AnswerParser.Options(isReversed ? w.Question : w.Answer);
+            return candidateParts.Any(cp =>
+                correctTargetParts.Any(tp =>
+                    string.Equals(cp, tp, StringComparison.OrdinalIgnoreCase)));
+        }
 
         var correctSource = (isReversed ? correct.Answer : correct.Question).Trim();
         bool IsAlsoCorrect(WordEntry w) =>
