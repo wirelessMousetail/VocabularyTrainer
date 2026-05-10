@@ -37,7 +37,7 @@ public class QuizServiceTests
     [MemberData(nameof(FiveDistinctWordCases))]
     public void CorrectAnswer_AppearsExactlyOnceInOptions(WordEntry word, WordEntry[] words)
     {
-        var session = Build(words).CreateQuizSessionForWord(word, Config(), null!);
+        var session = Build(words).CreateSessionForWord(word, Config(), null!);
         session.Quiz.Options
             .Count(o => string.Equals(o.Trim(), session.Quiz.CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase))
             .Should().Be(1);
@@ -47,7 +47,7 @@ public class QuizServiceTests
     [MemberData(nameof(FiveDistinctWordCases))]
     public void Options_NeverContainDuplicates(WordEntry word, WordEntry[] words)
     {
-        var session = Build(words).CreateQuizSessionForWord(word, Config(), null!);
+        var session = Build(words).CreateSessionForWord(word, Config(), null!);
         session.Quiz.Options
             .GroupBy(o => o.Trim(), StringComparer.OrdinalIgnoreCase)
             .Should().AllSatisfy(g => g.Count().Should().Be(1));
@@ -57,7 +57,7 @@ public class QuizServiceTests
     [MemberData(nameof(FiveDistinctWordCases))]
     public void Options_CountMatchesConfiguration(WordEntry word, WordEntry[] words)
     {
-        var session = Build(words).CreateQuizSessionForWord(word, Config(options: 3), null!);
+        var session = Build(words).CreateSessionForWord(word, Config(options: 3), null!);
         session.Quiz.Options.Should().HaveCount(3);
     }
 
@@ -71,7 +71,7 @@ public class QuizServiceTests
     {
         var words = FiveDistinctWords();
         var hond = words.Single(w => w.Question == "hond");
-        var session = Build(words).CreateQuizSessionForWord(hond, Config(dir: direction), null!);
+        var session = Build(words).CreateSessionForWord(hond, Config(dir: direction), null!);
         session.Quiz.Question.Should().Be(expectedQuestion);
         session.Quiz.CorrectAnswer.Should().Be(expectedAnswer);
     }
@@ -84,7 +84,7 @@ public class QuizServiceTests
         var service = Build(words);
 
         var results = Enumerable.Range(0, 100)
-            .Select(_ => service.CreateQuizSessionForWord(hond, Config(dir: QuizDirection.Random), null!))
+            .Select(_ => service.CreateSessionForWord(hond, Config(dir: QuizDirection.Random), null!))
             .Select(s => (s.Quiz.Question, s.Quiz.CorrectAnswer))
             .ToList();
 
@@ -115,7 +115,7 @@ public class QuizServiceTests
     public void Options_NeverShowSameAnswerTwice_DirectMode(WordEntry word, WordEntry[] words)
     {
         // "auto" and "wagen" both translate to "car" — only one should appear
-        var session = Build(words).CreateQuizSessionForWord(word, Config(), null!);
+        var session = Build(words).CreateSessionForWord(word, Config(), null!);
         session.Quiz.Options
             .Count(o => string.Equals(o.Trim(), "car", StringComparison.OrdinalIgnoreCase))
             .Should().Be(1, because: "the correct answer must appear exactly once; the synonym must be excluded");
@@ -141,7 +141,7 @@ public class QuizServiceTests
         // "beslissen" and "besluiten" both mean "to decide"
         // In reverse mode the question is "to decide"; showing either Dutch word as a
         // wrong option is misleading because both are correct answers.
-        var session = Build(words).CreateQuizSessionForWord(word, Config(dir: QuizDirection.Reverse), null!);
+        var session = Build(words).CreateSessionForWord(word, Config(dir: QuizDirection.Reverse), null!);
 
         // Neither Dutch word for "to decide" must appear as a wrong option
         // (the correct one will be in Options, but not the other)
@@ -165,7 +165,7 @@ public class QuizServiceTests
             WordEntryFixture.Make("vis",   "fish", WordGroup.Other), // only available distractor
         ];
         // OptionCount = 3 needs 2 distractors, but only 1 is available after synonym exclusion
-        var session = Build(words).CreateQuizSessionForWord(auto, Config(options: 3), null!);
+        var session = Build(words).CreateSessionForWord(auto, Config(options: 3), null!);
         session.Quiz.Options.Should().HaveCount(2);
     }
 
@@ -193,7 +193,7 @@ public class QuizServiceTests
         // Run multiple times to account for randomness within the top-K pool
         for (int i = 0; i < 20; i++)
         {
-            var session = service.CreateQuizSessionForWord(correct, config, null!);
+            var session = service.CreateSessionForWord(correct, config, null!);
             session.Quiz.Options.Should().NotContain("library");
             session.Quiz.Options.Should().NotContain("airplane");
         }
@@ -212,10 +212,45 @@ public class QuizServiceTests
             WordEntryFixture.Make("vergrendelen",  "to lock (up)",              WordGroup.Verb),
             WordEntryFixture.Make("ontgrendelen",  "to unlock",                 WordGroup.Verb),
         ];
-        var session = Build(words).CreateQuizSessionForWord(words[0], Config(), null!);
+        var session = Build(words).CreateSessionForWord(words[0], Config(), null!);
 
         session.Quiz.Options.Should().AllSatisfy(o => o.Should().NotContain("("));
         session.Quiz.CorrectAnswer.Should().Be("to close");
+    }
+
+    // ── CreateSessionForWord — pinned config ──────────────────────────────────
+
+    [Theory]
+    [InlineData(false, "hond", "dog")]  // direct:  question=Dutch, correct option=English
+    [InlineData(true,  "dog",  "hond")] // reversed: question=English, correct option=Dutch
+    public void CreateSessionForWord_PinsDirectionAndContainsCorrectAnswer(
+        bool isReversed, string expectedQuestion, string expectedOption)
+    {
+        var words = FiveDistinctWords();
+        var hond = words.Single(w => w.Question == "hond");
+        var cfg = new QuizConfiguration
+        {
+            Difficulty = QuizDifficulty.Easy,
+            Direction = isReversed ? QuizDirection.Reverse : QuizDirection.Direct,
+        };
+
+        var session = Build(words).CreateSessionForWord(hond, cfg, null!);
+
+        session.Quiz.Question.Should().Be(expectedQuestion);
+        session.Quiz.Options.Should().Contain(expectedOption);
+    }
+
+    [Fact]
+    public void CreateSessionForWord_WithEasyConfig_ProducesMcSession()
+    {
+        var words = FiveDistinctWords();
+        var hond = words.Single(w => w.Question == "hond");
+        var cfg = new QuizConfiguration { Difficulty = QuizDifficulty.Easy, OptionCount = 3 };
+
+        var session = Build(words).CreateSessionForWord(hond, cfg, null!);
+
+        session.Configuration.Difficulty.IsTypingMode().Should().BeFalse();
+        session.Quiz.Options.Should().HaveCount(3);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

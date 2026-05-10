@@ -30,6 +30,22 @@
             <Setter Property="Opacity" Value="0.5"/>
         </Style>
 
+        <Style Selector="Button.switch">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="#B0B0B0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.switch:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#909090"/>
+        </Style>
+        <Style Selector="Button.switch:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.5"/>
+        </Style>
+
         <Style Selector="TextBlock.result">
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Medium"/>
@@ -86,10 +102,18 @@
                     </TextBox.KeyBindings>
                 </TextBox>
 
-                <Button Content="Check"
-                        Classes="submit"
-                        Command="{Binding SubmitCommand}"
-                        IsEnabled="{Binding !IsQuizCompleted}"/>
+                <Grid ColumnDefinitions="*,6,Auto">
+                    <Button Grid.Column="0"
+                            Content="Check"
+                            Classes="submit"
+                            Command="{Binding SubmitCommand}"
+                            IsEnabled="{Binding !IsQuizCompleted}"/>
+                    <Button Grid.Column="2"
+                            Content="To options"
+                            Classes="switch"
+                            Command="{Binding SwitchToOptionsCommand}"
+                            IsEnabled="{Binding !IsQuizCompleted}"/>
+                </Grid>
 
                 <TextBlock Text="{Binding HintText}"
                            Classes="hint"

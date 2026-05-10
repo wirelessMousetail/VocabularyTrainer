@@ -60,9 +60,10 @@ public class QuizService
     }
 
     /// <summary>
-    /// Creates a quiz session with a specific word as the question. Intended for testing.
+    /// Creates a quiz session for a specific word using the supplied configuration.
+    /// Supports both typing and multiple-choice modes depending on <see cref="QuizConfiguration.Difficulty"/>.
     /// </summary>
-    internal QuizSession CreateQuizSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
+    public QuizSession CreateSessionForWord(WordEntry word, QuizConfiguration configuration, WordListService wordListService)
     {
         if (configuration.Difficulty.IsTypingMode())
         {

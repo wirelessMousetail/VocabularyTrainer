@@ -105,12 +105,24 @@ public partial class App : Application
 
             if (session.Configuration.Difficulty.IsTypingMode())
             {
-                var vm = new TypingQuizViewModel(session, () =>
-                {
-                    window?.Close();
-                    NotifyCompleted();
-                });
+                bool switching = false;
+                var vm = new TypingQuizViewModel(
+                    session,
+                    () =>
+                    {
+                        window?.Close();
+                        NotifyCompleted();
+                    },
+                    onSwitchToOptions: () =>
+                    {
+                        switching = true;
+                        window?.Close();
+                        bool isReversed = session.Quiz.Question != session.Quiz.WordEntry.Question;
+                        _applicationService!.SwitchToMultipleChoice(session.Quiz.WordEntry, isReversed);
+                    });
                 window = new TypingQuizView { DataContext = vm };
+                // Guard against OS-level close: only notify if not switching to MC
+                window.Closed += (_, _) => { if (!switching) NotifyCompleted(); };
             }
             else
             {
@@ -120,10 +132,9 @@ public partial class App : Application
                     NotifyCompleted();
                 });
                 window = new QuizView { DataContext = vm };
+                // Ensure timer restarts even when window is closed via OS controls
+                window.Closed += (_, _) => NotifyCompleted();
             }
-
-            // Ensure timer restarts even when window is closed via OS controls
-            window.Closed += (_, _) => NotifyCompleted();
 
             window.Show();
         });

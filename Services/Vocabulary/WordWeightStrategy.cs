@@ -50,6 +50,18 @@ public class WordWeightStrategy
     }
 
     /// <summary>
+    /// Sets the word's weight to the maximum value as a penalty and resets the correct streak.
+    /// Used when the user explicitly gives up on a typing question.
+    /// </summary>
+    /// <param name="wordEntry">The word entry to penalize.</param>
+    public void RegisterMaxPenalty(WordEntry wordEntry)
+    {
+        var weightData = wordEntry.WeightData;
+        weightData.Weight = MaxWeight;
+        weightData.CorrectStreak = 0;
+    }
+
+    /// <summary>
     /// Calculates the number of tickets a word receives in the selection pool.
     /// Higher weight words receive more tickets, increasing their probability of selection.
     /// </summary>

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Switch to options in typing mode** — a "Switch to options" button is now shown during typing-mode quizzes. Clicking it immediately applies a maximum weight penalty (100) to the word, closes the typing window, and opens a standard multiple-choice quiz for the same word. The switch applies only to the current question; the next quiz continues in typing mode.
+
 ## [1.1.0] - 2026-05-07
 
 ### Changed
