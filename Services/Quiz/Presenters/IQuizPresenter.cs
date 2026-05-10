@@ -27,7 +27,6 @@ public interface IQuizPresenter
     /// Only applicable in typing mode with reveal-letters enabled; returns null by default.
     /// </summary>
     string? GetHint() => null;
-
 }
 
 /// <summary>
