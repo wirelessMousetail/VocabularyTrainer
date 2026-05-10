@@ -152,6 +152,39 @@ public class QuizServiceTests
             because: "the selected correct answer must appear exactly once; the other synonym must be excluded");
     }
 
+    // ── IsSynonym – subset / intersection of comma-separated answers ─────────
+
+    public static TheoryData<WordEntry, WordEntry[], string> SubsetMatchCases()
+    {
+        var besluiten       = WordEntryFixture.Make("besluiten", "to decide, to resolve", WordGroup.Verb);
+        var beslissenSingle = WordEntryFixture.Make("beslissen", "to decide",             WordGroup.Verb);
+        var beslissenMulti  = WordEntryFixture.Make("beslissen", "to decide, to rule",    WordGroup.Verb);
+        var lopen           = WordEntryFixture.Make("lopen",     "to walk",               WordGroup.Verb);
+
+        var data = new TheoryData<WordEntry, WordEntry[], string>();
+
+        // Subset: "to decide" is one part of "to decide, to resolve"
+        data.Add(besluiten, [besluiten, beslissenSingle, lopen], "to decide");
+
+        // Intersection (besluiten as correct): "to decide, to rule" shares "to decide"
+        data.Add(besluiten, [besluiten, beslissenMulti, lopen], "to decide, to rule");
+
+        // Intersection (beslissen as correct): "to decide, to resolve" shares "to decide"
+        data.Add(beslissenMulti, [besluiten, beslissenMulti, lopen], "to decide, to resolve");
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(SubsetMatchCases))]
+    public void Options_ExcludesDistractor_WhenAnswersShareAnyPart(
+        WordEntry correct, WordEntry[] words, string excludedOption)
+    {
+        var session = Build(words).CreateSessionForWord(correct, Config(), null!);
+        session.Quiz.Options.Should().NotContain(excludedOption,
+            because: "a distractor whose answer shares any part with the correct answer is also correct and must be excluded");
+    }
+
     // ── Constrained pool ──────────────────────────────────────────────────────
 
     [Fact]
