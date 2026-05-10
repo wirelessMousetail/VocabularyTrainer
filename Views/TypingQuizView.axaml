@@ -61,7 +61,7 @@
             <Setter Property="Margin" Value="0,8,0,0"/>
         </Style>
 
-        <Style Selector="TextBlock.answer-hint">
+        <Style Selector="TextBlock.additional-info">
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="#666666"/>
             <Setter Property="TextAlignment" Value="Center"/>
@@ -124,9 +124,9 @@
                            Classes="result"
                            IsVisible="{Binding ResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
-                <TextBlock Text="{Binding AnswerHintText}"
-                           IsVisible="{Binding IsAnswerHintVisible}"
-                           Classes="answer-hint"/>
+                <TextBlock Text="{Binding AdditionalInfo}"
+                           IsVisible="{Binding IsAdditionalInfoVisible}"
+                           Classes="additional-info"/>
             </StackPanel>
         </DockPanel>
     </Panel>

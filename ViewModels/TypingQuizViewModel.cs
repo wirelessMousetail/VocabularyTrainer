@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
 using VocabularyTrainer.Services.Quiz.Presenters;
+using VocabularyTrainer.Services.Utils;
 using Timer = System.Timers.Timer;
 
 namespace VocabularyTrainer.ViewModels;
@@ -27,7 +28,7 @@ public class TypingQuizViewModel : ViewModelBase
     private string _resultMessage = string.Empty;
     private string _resultColor = ColorDefault;
     private bool _isQuizCompleted;
-    private bool _isAnswerHintVisible;
+    private bool _isAdditionalInfoVisible;
 
     /// <summary>
     /// Gets the question text to display.
@@ -84,18 +85,18 @@ public class TypingQuizViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Gets the full unstripped answer string (including bracket content) for display as a hint.
+    /// Gets the full unstripped answer string (including bracket content) shown after a correct answer.
     /// </summary>
-    public string AnswerHintText => _session.Quiz.WordEntry.Answer;
+    public string AdditionalInfo => _session.Quiz.WordEntry.Answer;
 
     /// <summary>
-    /// Gets a value indicating whether the answer hint should be visible.
-    /// True only after a correct answer when the answer contains parenthetical content.
+    /// Gets a value indicating whether the additional info should be visible.
+    /// True only after a correct answer when the answer contains parenthetical content or multiple options.
     /// </summary>
-    public bool IsAnswerHintVisible
+    public bool IsAdditionalInfoVisible
     {
-        get => _isAnswerHintVisible;
-        private set => SetProperty(ref _isAnswerHintVisible, value);
+        get => _isAdditionalInfoVisible;
+        private set => SetProperty(ref _isAdditionalInfoVisible, value);
     }
 
     /// <summary>
@@ -141,7 +142,8 @@ public class TypingQuizViewModel : ViewModelBase
                 ResultMessage = "Correct!";
                 ResultColor = ColorCorrect;
                 IsQuizCompleted = true;
-                IsAnswerHintVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer;
+                IsAdditionalInfoVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer
+                    || AnswerParser.Options(_session.Quiz.WordEntry.Answer).Count > 1;
                 SubmitCommand.RaiseCanExecuteChanged();
                 StartAutoCloseTimer();
                 break;
