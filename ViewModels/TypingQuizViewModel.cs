@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using VocabularyTrainer.Models;
 using VocabularyTrainer.Services;
 using VocabularyTrainer.Services.Quiz.Presenters;
+using VocabularyTrainer.Services.Utils;
 using Timer = System.Timers.Timer;
 
 namespace VocabularyTrainer.ViewModels;
@@ -141,7 +142,8 @@ public class TypingQuizViewModel : ViewModelBase
                 ResultMessage = "Correct!";
                 ResultColor = ColorCorrect;
                 IsQuizCompleted = true;
-                IsAnswerHintVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer;
+                IsAnswerHintVisible = _session.Quiz.WordEntry.Answer != _session.Quiz.WordEntry.CanonicalAnswer
+                    || AnswerParser.Options(_session.Quiz.WordEntry.Answer).Count > 1;
                 SubmitCommand.RaiseCanExecuteChanged();
                 StartAutoCloseTimer();
                 break;

@@ -50,7 +50,9 @@ public class TypingQuizViewModelTests : IDisposable
     [Theory]
     [InlineData("stroom", "the current (water, air, electricity)", null)]          // before answering
     [InlineData("stroom", "the current (water, air, electricity)", "wrong answer")] // wrong answer
-    [InlineData("hond",   "dog",                                   "dog")]          // correct, no brackets
+    [InlineData("hond",   "dog",                                   "dog")]          // correct, no brackets, single option
+    [InlineData("getal",  "the number, the amount",                null)]           // before answering, multiple options
+    [InlineData("getal",  "the number, the amount",                "wrong answer")] // wrong answer, multiple options
     public void IsAnswerHintVisible_IsFalse(string question, string answer, string? typed)
     {
         var word = WordEntryFixture.Make(question, answer);
@@ -63,6 +65,29 @@ public class TypingQuizViewModelTests : IDisposable
         }
 
         vm.IsAnswerHintVisible.Should().BeFalse();
+    }
+
+    // ── IsAnswerHintVisible — multiple options ────────────────────────────────
+
+    [Fact]
+    public void IsAnswerHintVisible_IsTrue_AfterCorrectAnswer_WhenAnswerHasMultipleOptions()
+    {
+        var word = WordEntryFixture.Make("getal", "the number, the amount");
+        var vm = MakeViewModel(word);
+
+        vm.TextInput = "the number";
+        vm.SubmitCommand.Execute(null);
+
+        vm.IsAnswerHintVisible.Should().BeTrue();
+    }
+
+    [Fact]
+    public void AnswerHintText_IsFullAnswer_WhenMultipleOptions()
+    {
+        var word = WordEntryFixture.Make("getal", "the number, the amount");
+        var vm = MakeViewModel(word);
+
+        vm.AnswerHintText.Should().Be("the number, the amount");
     }
 
     // ── SwitchToOptionsCommand ────────────────────────────────────────────────
