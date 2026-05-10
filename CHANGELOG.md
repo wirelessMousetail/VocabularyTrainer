@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Subset/intersection answer filtering in multiple-choice options** — a distractor is now excluded when any of its comma-separated answer parts matches any part of the correct answer, preventing words like `beslissen ; to decide` from appearing as a wrong option alongside `besluiten ; to decide, to resolve`.
+
 ### Added
 
 - **Alternatives shown after correct typing answer** — after typing a correct answer in typing-quiz mode, if the word has multiple accepted answers, the full answer string (showing all alternatives) is shown in the additional info area below the result.
